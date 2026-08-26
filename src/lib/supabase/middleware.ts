@@ -1,12 +1,12 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { isDemoMode } from "@/lib/env";
 
 const PROTECTED_PREFIXES = ["/circles", "/join", "/settings"];
 const AUTH_PAGES = ["/login"];
 
-export async function updateSession(request: NextRequest) {
+function buildClient(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -27,8 +27,16 @@ export async function updateSession(request: NextRequest) {
       },
     }
   );
+  return { supabase, supabaseResponse };
+}
 
-  // Penting: jangan pakai getSession() — getUser() memvalidasi token ke server Auth
+export async function updateSession(request: NextRequest) {
+  // Mode demo tidak punya sesi server — biarkan lewat
+  if (isDemoMode) return NextResponse.next();
+
+  const { supabase, supabaseResponse } = buildClient(request);
+
+  // getUser() memvalidasi token ke server Auth (jangan pakai getSession())
   const {
     data: { user },
   } = await supabase.auth.getUser();
