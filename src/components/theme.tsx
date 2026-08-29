@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useState,
 } from "react";
 
@@ -27,20 +26,14 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
-
-  // Sync with the value the inline boot script already applied, so we never
-  // flash the wrong theme.
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const initial =
-      stored ??
-      (window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light");
-    setThemeState(initial);
-    applyTheme(initial);
-  }, []);
+  // The inline boot script already applied the correct theme to <html> before
+  // hydration, so read it from the DOM to avoid a flash and keep SSR safe.
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof document === "undefined") return "light";
+    return document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light";
+  });
 
   const setTheme = useCallback((t: Theme) => {
     setThemeState(t);

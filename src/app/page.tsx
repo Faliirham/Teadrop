@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { Badge, Button, Card, EmptyState, Input, Modal, idr } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useToast } from "@/components/toast";
 import { useDemoSync, useMyCircles, useSession } from "@/hooks/use-teadrop";
 import * as api from "@/lib/api";
 import { isDemoMode } from "@/lib/env";
@@ -14,6 +15,7 @@ import { isDemoMode } from "@/lib/env";
 export default function HomePage() {
   const router = useRouter();
   const qc = useQueryClient();
+  const toast = useToast();
   const { data: user, isLoading: sessionLoading } = useSession();
   useDemoSync();
 
@@ -52,9 +54,11 @@ export default function HomePage() {
       setShowCreate(false);
       setCName("");
       setCDesc("");
+      toast.success("Circle berhasil dibuat 🎉");
       await qc.invalidateQueries({ queryKey: ["circles"] });
       router.push(`/circles/${id}`);
     } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Gagal membuat circle");
       setCreateErr(e instanceof Error ? e.message : "Gagal membuat circle");
     } finally {
       setCreating(false);
@@ -68,9 +72,11 @@ export default function HomePage() {
       const id = await api.joinCircle(joinCode);
       setShowJoin(false);
       setJoinCode("");
+      toast.success("Berhasil gabung ke circle!");
       await qc.invalidateQueries({ queryKey: ["circles"] });
       router.push(`/circles/${id}`);
     } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Gagal gabung");
       setJoinErr(e instanceof Error ? e.message : "Gagal gabung");
     } finally {
       setJoining(false);

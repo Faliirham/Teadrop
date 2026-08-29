@@ -1,12 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Badge, Button, Card, EmptyState, Input, Modal, idr } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useToast } from "@/components/toast";
+import { useConfirm } from "@/components/confirm";
+import { DueDateReminder } from "@/components/due-date-reminder";
 import {
   useCircleDetail,
   useCircleRealtime,
@@ -84,6 +87,8 @@ export default function CircleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const qc = useQueryClient();
+  const toast = useToast();
+  const confirm = useConfirm();
 
   useDemoSync();
   useCircleRealtime(id);
@@ -114,53 +119,91 @@ export default function CircleDetailPage() {
     if (!data) return;
     await navigator.clipboard.writeText(data.circle.invite_code);
     setCopied(true);
+    toast.success("Kode undangan disalin");
     setTimeout(() => setCopied(false), 1500);
   };
 
   const doRegenerate = async () => {
-    if (!confirm("Ganti kode undangan? Kode lama tidak berlaku.")) return;
+    const ok = await confirm({
+      title: "Ganti kode undangan?",
+      message: "Kode lama tidak berlaku lagi. Anggota perlu memakai kode baru.",
+      confirmLabel: "Ganti Kode",
+    });
+    if (!ok) return;
     await api.regenerateInvite(id);
+    toast.success("Kode undangan baru dibuat");
     refresh();
   };
 
   const doSetRole = async (memberId: string, role: "admin" | "member") => {
     await api.setMemberRole(memberId, role);
+    toast.success(role === "admin" ? "Anggota dijadikan bendahara" : "Role diubah menjadi anggota");
     refresh();
   };
 
   const doRemoveMember = async (memberId: string, name?: string | null) => {
-    if (!confirm(`Keluarkan ${name ?? "anggota ini"} dari circle?`)) return;
+    const ok = await confirm({
+      title: "Keluarkan anggota?",
+      message: `${name ?? "Anggota ini"} akan dihapus dari circle.`,
+      danger: true,
+      confirmLabel: "Keluarkan",
+    });
+    if (!ok) return;
     await api.removeMember(memberId);
+    toast.success("Anggota dikeluarkan");
     refresh();
   };
 
   const doLeave = async () => {
-    if (!confirm("Keluar dari circle ini?")) return;
+    const ok = await confirm({
+      title: "Keluar dari circle?",
+      message: "Kamu bisa bergabung lagi nanti pakai kode undangan.",
+      danger: true,
+      confirmLabel: "Keluar",
+    });
+    if (!ok) return;
     await api.leaveCircle(id);
+    toast.info("Kamu keluar dari circle");
     router.replace("/");
   };
 
   const doDeleteCircle = async () => {
-    if (!confirm("HAPUS circle ini permanen dari daftar? Riwayat tidak bisa diakses lagi.")) return;
+    const ok = await confirm({
+      title: "Hapus circle ini?",
+      message: "Permanen dari daftar dan riwayat tidak bisa diakses lagi.",
+      danger: true,
+      confirmLabel: "Hapus",
+    });
+    if (!ok) return;
     await api.deleteCircleSoft(id);
+    toast.success("Circle dihapus");
     await qc.invalidateQueries({ queryKey: ["circles"] });
     router.replace("/");
   };
 
   const doClosePeriod = async (p: Period) => {
-    if (
-      !confirm(
-        `Tutup periode "${p.name}"? Periode yang ditutup tidak bisa diubah lagi (read-only permanen).`
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: `Tutup periode "${p.name}"?`,
+      message: "Periode yang ditutup tidak bisa diubah lagi (read-only permanen).",
+      danger: true,
+      confirmLabel: "Tutup Periode",
+    });
+    if (!ok) return;
     await api.closePeriod(p.id);
+    toast.success("Periode ditutup 🔒");
     refresh();
   };
 
   const doDeleteContribution = async (c: Contribution) => {
-    if (!confirm(`Hapus pembayaran ${idr(Number(c.amount))}?`)) return;
+    const ok = await confirm({
+      title: "Hapus pembayaran?",
+      message: `Hapus pembayaran ${idr(Number(c.amount))} yang tercatat.`,
+      danger: true,
+      confirmLabel: "Hapus",
+    });
+    if (!ok) return;
     await api.deleteContribution(c.id);
+    toast.info("Pembayaran dihapus");
     refresh();
   };
 
@@ -225,6 +268,10 @@ export default function CircleDetailPage() {
           {data.circle.name}
         </h1>
         <ThemeToggle />
+      </div>
+
+      <div className="mb-4">
+        <DueDateReminder detail={data} />
       </div>
 
       {/* Tab bar */}
@@ -683,6 +730,7 @@ export default function CircleDetailPage() {
         onClose={() => setShowBalance(false)}
         onDone={async () => {
           setShowBalance(false);
+          toast.success("Saldo diperbarui ✓");
           await refresh();
         }}
       />
@@ -696,6 +744,7 @@ export default function CircleDetailPage() {
           onClose={() => setShowPay(false)}
           onDone={async () => {
             setShowPay(false);
+            toast.success("Pembayaran tercatat ✓");
             await refresh();
           }}
         />
@@ -711,6 +760,7 @@ export default function CircleDetailPage() {
         onClose={() => setShowNewPeriod(false)}
         onDone={async () => {
           setShowNewPeriod(false);
+          toast.success("Periode iuran dibuat 🗓️");
           await refresh();
         }}
       />
