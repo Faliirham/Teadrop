@@ -52,7 +52,7 @@ Versi: 1.0 · Merujuk pada [PRD.md](./PRD.md)
 ### FR-7 Laporan & Riwayat
 - FR-7.1 Matriks status anggota × periode (lunas/sebagian/belum).
 - FR-7.2 Log transaksi per bulan dengan filter periode.
-- FR-7.3 Ekspor CSV riwayat pembayaran (nice-to-have MVP+).
+- FR-7.3 Ekspor CSV riwayat pembayaran (per periode) dan audit trail saldo — diimplementasikan (`lib/csv.ts`).
 
 ## 3. Non-Functional Requirements
 

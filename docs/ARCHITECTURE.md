@@ -4,14 +4,19 @@
 
 | Layer | Teknologi |
 |---|---|
-| Framework | Next.js 15 (App Router, src dir) + React 19 |
+| Framework | Next.js 16 (App Router, src dir) + React 19 |
 | Bahasa | TypeScript |
-| Styling | Tailwind CSS v4 + shadcn/ui |
+| Styling | Tailwind CSS v4 + komponen custom (`components/ui.tsx`) |
 | Data fetching | TanStack Query v5 + supabase-js v2 |
-| State klien | Zustand (UI state ringan) |
+| State klien | TanStack Query + React state (tanpa library ekstra) |
 | Database/Auth/Realtime | Supabase (Postgres, GoTrue, Realtime) |
-| Validasi | Zod |
+| Validasi | Diclient (form sederhana) + RLS + check di RPC |
+| PWA | Web App Manifest + service worker (`public/sw.js`) |
 | Hosting | Vercel (web) + Supabase cloud (data) |
+
+> **Mode Demo:** ketika `NEXT_PUBLIC_SUPABASE_URL` kosong/placeholder, aplikasi jatuh ke mode
+> demo memakai store localStorage (`lib/demo/store.ts`) sehingga seluruh fitur bisa dicoba
+> tanpa backend. Semua data layer (`lib/api.ts`) bercabang antara demo & live.
 
 ## 2. Diagram Arsitektur
 
@@ -115,24 +120,32 @@ erDiagram
 
 ```
 src/
-├── app/                    # routes (App Router)
-│   ├── (auth)/login/
-│   ├── (app)/
-│   │   ├── circles/[id]/   # dashboard circle (realtime)
-│   │   │   ├── members/
-│   │   │   ├── periods/
-│   │   │   └── history/
-│   │   └── settings/
+├── app/                          # routes (App Router)
+│   ├── page.tsx                  # landing (guest) → dashboard (login/demo)
+│   ├── login/page.tsx            # autentikasi
+│   ├── circles/[id]/page.tsx     # sidebar circle dengan tab
+│   ├── auth/callback/route.ts    # penukaran magic-link code
+│   ├── manifest.ts               # Web App Manifest (PWA)
+│   ├── globals.css               # Tailwind v4 + tema
 │   └── layout.tsx
-├── components/ui/          # shadcn primitives
+├── components/
+│   ├── ui.tsx                    # primitives (Button/Card/Input/Badge/Modal/EmptyState)
+│   ├── theme.tsx                 # ThemeProvider + boot script
+│   ├── theme-toggle.tsx          # toggle mode gelap/terang
+│   ├── toast.tsx                 # notifikasi toast
+│   ├── confirm.tsx               # dialog konfirmasi
+│   ├── due-date-reminder.tsx     # pengingat jatuh tempo
+│   ├── charts.tsx                # komponen chart SVG
+│   ├── landing.tsx               # halaman publik
+│   ├── pwa-installer.tsx         # register SW + install prompt
+│   └── providers.tsx             # QueryClient + Theme + Toast + Confirm
+├── hooks/use-teadrop.ts          # query & realtime hooks
 ├── lib/
-│   ├── supabase/           # client, server client, helpers
-│   └── utils.ts
-├── features/
-│   ├── circles/            # hooks, queries, types
-│   ├── contributions/
-│   └── balance/
-└── middleware.ts           # proteksi route auth
+│   ├── api.ts                    # data layer (demo ↔ live)
+│   ├── csv.ts                    # ekspor CSV
+│   ├── demo/store.ts             # mock DB localStorage (mode demo)
+│   └── supabase/                 # client, server client, helpers
+└── proxy.ts                      # proteksi route auth (pengganti middleware)
 ```
 
 ## 6. Flow Utama
