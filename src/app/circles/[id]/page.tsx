@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useToast } from "@/components/toast";
 import { useConfirm } from "@/components/confirm";
 import { DueDateReminder } from "@/components/due-date-reminder";
+import { exportBalanceHistoryCsv, exportContributionsCsv } from "@/lib/csv";
 import {
   useCircleDetail,
   useCircleRealtime,
@@ -636,6 +637,34 @@ export default function CircleDetailPage() {
       {/* ================= RIWAYAT ================= */}
       {tab === "riwayat" && (
         <div className="space-y-6">
+          {/* Ekspor CSV */}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                exportBalanceHistoryCsv(data);
+                toast.success("Riwayat saldo diekspor CSV");
+              }}
+            >
+              ⬇️ Ekspor Riwayat Saldo
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              disabled={data.periods.length === 0}
+              onClick={() => {
+                const open = data.periods.find((p) => !p.is_closed) ?? data.periods[0];
+                exportContributionsCsv(data, open);
+                toast.success("Pembayaran diekspor CSV");
+              }}
+            >
+              ⬇️ Ekspor Pembayaran
+            </Button>
+          </div>
+
           {[...data.periods].map((p) => {
             const rows = data.contributions.filter((c) => c.period_id === p.id);
             if (rows.length === 0) return null;
