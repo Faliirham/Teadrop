@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Badge, Button, Card, EmptyState, Input, Modal, idr } from "@/components/ui";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useDemoSync, useMyCircles, useSession } from "@/hooks/use-teadrop";
 import * as api from "@/lib/api";
 import { isDemoMode } from "@/lib/env";
@@ -92,22 +93,27 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-dvh bg-slate-50 pb-16">
+    <main className="min-h-dvh bg-slate-50 pb-16 dark:bg-slate-900">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
           <div>
-            <h1 className="text-lg font-extrabold tracking-tight text-slate-900">
+            <h1 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
               🍃 Teadrop
             </h1>
-            <p className="text-xs text-slate-400">Halo, {user?.name} 👋</p>
+            <p className="text-xs text-slate-400 dark:text-slate-400">
+              Halo, {user?.name} 👋
+            </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            Keluar
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              Keluar
+            </Button>
+          </div>
         </div>
         {isDemoMode && (
-          <div className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-700">
+          <div className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
             <b>MODE DEMO</b> — data contoh disimpan di browser ini. Isi{" "}
             <code>.env.local</code> dengan key Supabase untuk mode live.
           </div>
@@ -129,7 +135,10 @@ export default function HomePage() {
         {circlesLoading ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {[1, 2].map((i) => (
-              <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100" />
+              <div
+                key={i}
+                className="h-28 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800"
+              />
             ))}
           </div>
         ) : !circles || circles.length === 0 ? (
@@ -144,17 +153,19 @@ export default function HomePage() {
               <Link key={c.id} href={`/circles/${c.id}`} className="group">
                 <Card className="transition-shadow group-hover:shadow-md">
                   <div className="flex items-start justify-between gap-2">
-                    <h2 className="font-bold leading-snug text-slate-900">{c.name}</h2>
+                    <h2 className="font-bold leading-snug text-slate-900 dark:text-slate-100">
+                      {c.name}
+                    </h2>
                     <Badge tone={c.role === "admin" ? "green" : "slate"}>
                       {c.role === "admin" ? "Bendahara" : "Anggota"}
                     </Badge>
                   </div>
                   {c.description && (
-                    <p className="mt-1 line-clamp-2 text-sm text-slate-400">
+                    <p className="mt-1 line-clamp-2 text-sm text-slate-400 dark:text-slate-400">
                       {c.description}
                     </p>
                   )}
-                  <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                  <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                     <span>👥 {c.memberCount} anggota</span>
                     <span>Iuran {idr(c.default_amount)}/bln</span>
                   </div>

@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Badge, Button, Card, EmptyState, Input, Modal, idr } from "@/components/ui";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   useCircleDetail,
   useCircleRealtime,
@@ -69,7 +70,7 @@ const METHOD_TONE = {
 function Avatar({ name }: { name?: string | null }) {
   const initial = (name ?? "?").trim().charAt(0).toUpperCase();
   return (
-    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
+    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
       {initial}
     </span>
   );
@@ -181,9 +182,9 @@ export default function CircleDetailPage() {
     return (
       <Shell>
         <div className="space-y-4">
-          <div className="h-40 animate-pulse rounded-2xl bg-slate-200" />
-          <div className="h-24 animate-pulse rounded-2xl bg-slate-100" />
-          <div className="h-24 animate-pulse rounded-2xl bg-slate-100" />
+          <div className="h-40 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
+          <div className="h-24 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />
+          <div className="h-24 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />
         </div>
       </Shell>
     );
@@ -214,16 +215,20 @@ export default function CircleDetailPage() {
     <Shell>
       {/* Header circle */}
       <div className="mb-4 flex items-center gap-2">
-        <Link href="/" className="text-slate-400 hover:text-slate-600">
+        <Link
+          href="/"
+          className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+        >
           ←
         </Link>
-        <h1 className="truncate text-lg font-extrabold text-slate-900">
+        <h1 className="min-w-0 flex-1 truncate text-lg font-extrabold text-slate-900 dark:text-slate-100">
           {data.circle.name}
         </h1>
+        <ThemeToggle />
       </div>
 
       {/* Tab bar */}
-      <nav className="sticky top-0 z-10 -mx-4 mb-5 border-b border-slate-200 bg-white/95 px-4 backdrop-blur">
+      <nav className="sticky top-0 z-10 -mx-4 mb-5 border-b border-slate-200 bg-white/95 px-4 backdrop-blur dark:border-slate-700 dark:bg-slate-800/95">
         <div className="flex max-w-full gap-1 overflow-x-auto py-2">
           {tabs.map((t) => (
             <button
@@ -232,7 +237,7 @@ export default function CircleDetailPage() {
               className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                 tab === t.key
                   ? "bg-emerald-600 text-white"
-                  : "text-slate-500 hover:bg-slate-100"
+                  : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
               }`}
             >
               {t.label}
@@ -278,13 +283,13 @@ export default function CircleDetailPage() {
             <Card>
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-bold text-slate-900">{activePeriod.name}</p>
-                  <p className="mt-0.5 text-xs text-slate-400">
+                  <p className="font-bold text-slate-900 dark:text-slate-100">{activePeriod.name}</p>
+                  <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-400">
                     Jatuh tempo {fmtDate(activePeriod.due_date)} ·{" "}
                     {(() => {
                       const d = daysUntil(activePeriod.due_date);
                       if (d < 0) return <span className="text-rose-500">terlambat {-d} hari</span>;
-                      if (d === 0) return <span className="text-amber-600">hari ini!</span>;
+                      if (d === 0) return <span className="text-amber-600 dark:text-amber-400">hari ini!</span>;
                       return `${d} hari lagi`;
                     })()}
                   </p>
@@ -295,11 +300,11 @@ export default function CircleDetailPage() {
               </div>
 
               <div className="mt-4">
-                <div className="flex justify-between text-xs text-slate-500">
+                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
                   <span>Terkumpul {idr(collected)}</span>
                   <span>Target {idr(target)}</span>
                 </div>
-                <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-slate-100">
+                <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
                   <div
                     className="h-full rounded-full bg-emerald-500 transition-all"
                     style={{ width: `${target > 0 ? Math.min(100, (collected / target) * 100) : 0}%` }}
@@ -314,13 +319,13 @@ export default function CircleDetailPage() {
                   return (
                     <div key={m.id} className="flex items-center gap-3">
                       <Avatar name={m.profile?.full_name} />
-                      <span className="flex-1 truncate text-sm font-medium text-slate-700">
+                      <span className="flex-1 truncate text-sm font-medium text-slate-700 dark:text-slate-200">
                         {m.profile?.full_name ?? "Anggota"}
                         {m.user_id === user?.id && (
-                          <span className="ml-1 text-xs text-slate-400">(kamu)</span>
+                          <span className="ml-1 text-xs text-slate-400 dark:text-slate-500">(kamu)</span>
                         )}
                       </span>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-400 dark:text-slate-400">
                         {idr(paidSum(data, m.id, activePeriod.id))}
                       </span>
                       <Badge tone={STATUS_TONE[st]}>{STATUS_LABEL[st]}</Badge>
@@ -356,7 +361,7 @@ export default function CircleDetailPage() {
               )}
 
               {!isAdmin && myMembership && (
-                <p className="mt-3 rounded-xl bg-slate-50 px-4 py-2.5 text-center text-xs text-slate-500">
+                <p className="mt-3 rounded-xl bg-slate-50 px-4 py-2.5 text-center text-xs text-slate-500 dark:bg-slate-700/50 dark:text-slate-300">
                   Status kamu:{" "}
                   <b>{STATUS_LABEL[statusOf(data, myMembership.id, activePeriod)]}</b>{" "}
                   · hubungi bendahara kalau sudah transfer tapi belum dicatat
@@ -383,10 +388,10 @@ export default function CircleDetailPage() {
       {tab === "anggota" && (
         <div className="space-y-4">
           {/* Kode undangan */}
-          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50">
-            <p className="text-sm font-medium text-slate-600">Kode undangan</p>
+          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Kode undangan</p>
             <div className="mt-2 flex items-center gap-3">
-              <code className="flex-1 rounded-xl bg-white px-4 py-3 text-center font-mono text-2xl font-extrabold tracking-[0.3em] text-emerald-800 ring-1 ring-emerald-200">
+              <code className="flex-1 rounded-xl bg-white px-4 py-3 text-center font-mono text-2xl font-extrabold tracking-[0.3em] text-emerald-800 ring-1 ring-emerald-200 dark:bg-slate-900 dark:text-emerald-300 dark:ring-emerald-500/30">
                 {data.circle.invite_code}
               </code>
             </div>
@@ -408,13 +413,13 @@ export default function CircleDetailPage() {
               <div key={m.id} className="flex items-center gap-3 px-4 py-3.5">
                 <Avatar name={m.profile?.full_name} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-slate-800">
+                  <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
                     {m.profile?.full_name ?? "Tanpa nama"}
                     {m.user_id === user?.id && (
-                      <span className="ml-1 text-xs text-slate-400">(kamu)</span>
+                      <span className="ml-1 text-xs text-slate-400 dark:text-slate-500">(kamu)</span>
                     )}
                   </p>
-                  <p className="truncate text-xs text-slate-400">
+                  <p className="truncate text-xs text-slate-400 dark:text-slate-400">
                     gabung {fmtDate(m.joined_at)}
                   </p>
                 </div>
@@ -443,8 +448,8 @@ export default function CircleDetailPage() {
           </Card>
 
           {/* Zona bahaya */}
-          <Card className="border-rose-100">
-            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-rose-400">
+          <Card className="border-rose-100 dark:border-rose-500/30">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-rose-400 dark:text-rose-300">
               Zona berbahaya
             </p>
             {!isAdmin && (
@@ -491,14 +496,14 @@ export default function CircleDetailPage() {
             return (
               <Card key={p.id} className="p-0 overflow-hidden">
                 <button
-                  className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-slate-50"
+                  className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50"
                   onClick={() => setExpanded(expandedOn ? null : p.id)}
                 >
                   <div>
-                    <p className="font-bold text-slate-900">
+                    <p className="font-bold text-slate-900 dark:text-slate-100">
                       {p.name} {p.is_closed && "🔒"}
                     </p>
-                    <p className="mt-0.5 text-xs text-slate-400">
+                    <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-400">
                       Tempo {fmtDate(p.due_date)} · {idr(Number(p.amount_per_member))}/org
                     </p>
                   </div>
@@ -506,15 +511,15 @@ export default function CircleDetailPage() {
                     <Badge tone={p.is_closed ? "slate" : "green"}>
                       {p.is_closed ? "Ditutup" : "Aktif"}
                     </Badge>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-slate-400 dark:text-slate-400">
                       {lunas}/{data.members.length} lunas
                     </p>
                   </div>
                 </button>
 
                 {expandedOn && (
-                  <div className="border-t border-slate-100 px-5 pb-4 pt-3">
-                    <div className="mb-3 flex justify-between text-xs text-slate-500">
+                  <div className="border-t border-slate-100 px-5 pb-4 pt-3 dark:border-slate-700">
+                    <div className="mb-3 flex justify-between text-xs text-slate-500 dark:text-slate-400">
                       <span>Terkumpul {idr(col)}</span>
                       <span>dari {idr(tgt)}</span>
                     </div>
@@ -528,10 +533,10 @@ export default function CircleDetailPage() {
                           <div key={m.id}>
                             <div className="flex items-center gap-2 py-1">
                               <Avatar name={m.profile?.full_name} />
-                              <span className="flex-1 truncate text-sm text-slate-700">
+                              <span className="flex-1 truncate text-sm text-slate-700 dark:text-slate-200">
                                 {m.profile?.full_name}
                               </span>
-                              <span className="text-xs text-slate-400">
+                              <span className="text-xs text-slate-400 dark:text-slate-400">
                                 {idr(paidSum(data, m.id, p.id))}
                               </span>
                               <Badge tone={STATUS_TONE[st]}>{STATUS_LABEL[st]}</Badge>
@@ -554,7 +559,7 @@ export default function CircleDetailPage() {
                                 <button
                                   key={r.id}
                                   onClick={() => doDeleteContribution(r)}
-                                  className="ml-11 block text-left text-[11px] text-slate-300 hover:text-rose-500"
+                                  className="ml-11 block text-left text-[11px] text-slate-300 hover:text-rose-500 dark:text-slate-500 dark:hover:text-rose-400"
                                 >
                                   ↳ {fmtDate(r.paid_at)} {idr(Number(r.amount))} ({r.method}) ✕
                                 </button>
@@ -589,10 +594,10 @@ export default function CircleDetailPage() {
             if (rows.length === 0) return null;
             return (
               <div key={p.id}>
-                <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
+                <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                   {p.name} {p.is_closed && <span title="ditutup">🔒</span>}
                 </h3>
-                <Card className="divide-y divide-slate-100 p-0">
+          <Card className="divide-y divide-slate-100 p-0 dark:divide-slate-700">
                   {rows.map((c) => {
                     const member = data.members.find((m) => m.id === c.member_id);
                     const canDelete =
@@ -601,28 +606,28 @@ export default function CircleDetailPage() {
                       <div key={c.id} className="flex items-center gap-3 px-4 py-3">
                         <Avatar name={member?.profile?.full_name} />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-slate-800">
+                          <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
                             {member?.profile?.full_name ?? "?"}
                             {c.note && (
-                              <span className="ml-1 text-xs italic text-slate-400">
+                              <span className="ml-1 text-xs italic text-slate-400 dark:text-slate-400">
                                 “{c.note}”
                               </span>
                             )}
                           </p>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-slate-400 dark:text-slate-400">
                             {fmtDate(c.paid_at)} oleh{" "}
                             {data.members.find((m) => m.user_id === c.recorded_by)?.profile
                               ?.full_name ?? "?"}
                           </p>
                         </div>
                         <Badge tone={METHOD_TONE[c.method]}>{c.method}</Badge>
-                        <span className="text-sm font-bold text-emerald-700">
+                        <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
                           {idr(Number(c.amount))}
                         </span>
                         {canDelete && (
                           <button
                             onClick={() => doDeleteContribution(c)}
-                            className="text-xs text-slate-300 hover:text-rose-500"
+                            className="text-xs text-slate-300 hover:text-rose-500 dark:text-slate-500 dark:hover:text-rose-400"
                             title="hapus"
                           >
                             ✕
@@ -638,18 +643,18 @@ export default function CircleDetailPage() {
 
           {/* Audit trail saldo */}
           <div>
-            <h3 className="mb-2 text-sm font-bold text-slate-700">Riwayat Saldo</h3>
+            <h3 className="mb-2 text-sm font-bold text-slate-700 dark:text-slate-200">Riwayat Saldo</h3>
             {data.balances.length === 0 ? (
               <EmptyState emoji="🏦" title="Belum ada update saldo" />
             ) : (
-              <Card className="divide-y divide-slate-100 p-0">
+              <Card className="divide-y divide-slate-100 p-0 dark:divide-slate-700">
                 {data.balances.map((b) => {
                   const by = data.members.find((m) => m.user_id === b.recorded_by);
                   const diff = Number(b.new_amount) - Number(b.previous_amount);
                   return (
                     <div key={b.id} className="px-4 py-3">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-bold text-slate-800">
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
                           {idr(Number(b.new_amount))}
                         </p>
                         <Badge tone={diff >= 0 ? "green" : "red"}>
@@ -657,8 +662,8 @@ export default function CircleDetailPage() {
                           {idr(diff)}
                         </Badge>
                       </div>
-                      <p className="mt-0.5 text-xs text-slate-500">{b.note}</p>
-                      <p className="text-[11px] text-slate-300">
+                      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{b.note}</p>
+                      <p className="text-[11px] text-slate-300 dark:text-slate-500">
                         oleh {by?.profile?.full_name ?? "?"} · {fmtDate(b.created_at)}
                       </p>
                     </div>
@@ -717,7 +722,7 @@ export default function CircleDetailPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-dvh bg-slate-50">
+    <main className="min-h-dvh bg-slate-50 dark:bg-slate-900">
       <div className="mx-auto max-w-2xl px-4 pb-16 pt-4">{children}</div>
     </main>
   );
@@ -761,7 +766,7 @@ function BalanceModal({
 
   return (
     <Modal open={open} onClose={onClose} title="Update Saldo Manual">
-      <p className="mb-4 rounded-xl bg-sky-50 px-4 py-3 text-xs leading-relaxed text-sky-700">
+      <p className="mb-4 rounded-xl bg-sky-50 px-4 py-3 text-xs leading-relaxed text-sky-700 dark:bg-sky-500/10 dark:text-sky-300">
         Saldo saat ini: <b>{idr(currentAmount)}</b>. Setiap perubahan tercatat
         sebagai riwayat yang tidak bisa dihapus — isi catatan yang jelas ya.
       </p>
@@ -783,7 +788,7 @@ function BalanceModal({
           maxLength={120}
         />
         {err && (
-          <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600">{err}</p>
+          <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">{err}</p>
         )}
         <Button
           size="lg"
@@ -845,11 +850,11 @@ function RecordPaymentModal({
     <Modal open={open} onClose={onClose} title={`Catat Pembayaran — ${period.name}`}>
       <div className="space-y-4">
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium text-slate-600">Anggota</span>
+          <span className="mb-1.5 block text-sm font-medium text-slate-600 dark:text-slate-300">Anggota</span>
           <select
             value={memberId}
             onChange={(e) => setMemberId(e.target.value)}
-            className="w-full cursor-pointer rounded-xl border border-slate-300 px-4 py-2.5 text-slate-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            className="w-full cursor-pointer rounded-xl border border-slate-300 px-4 py-2.5 text-slate-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-600 dark:focus:ring-emerald-500/20"
           >
             <option value="">— pilih anggota —</option>
             {detail.members.map((m) => (
@@ -869,11 +874,11 @@ function RecordPaymentModal({
         />
 
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium text-slate-600">Metode</span>
+          <span className="mb-1.5 block text-sm font-medium text-slate-600 dark:text-slate-300">Metode</span>
           <select
             value={method}
             onChange={(e) => setMethod(e.target.value as Contribution["method"])}
-            className="w-full cursor-pointer rounded-xl border border-slate-300 px-4 py-2.5 text-slate-800 outline-none focus:border-emerald-500"
+            className="w-full cursor-pointer rounded-xl border border-slate-300 px-4 py-2.5 text-slate-800 outline-none focus:border-emerald-500 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-600"
           >
             <option value="transfer">Transfer</option>
             <option value="qris">QRIS</option>
@@ -891,7 +896,7 @@ function RecordPaymentModal({
         />
 
         {err && (
-          <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600">{err}</p>
+          <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">{err}</p>
         )}
         <Button
           size="lg"
@@ -969,7 +974,7 @@ function CreatePeriodModal({
           onChange={(e) => setAmount(e.target.value)}
         />
         {err && (
-          <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600">{err}</p>
+          <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">{err}</p>
         )}
         <Button
           size="lg"
@@ -980,7 +985,7 @@ function CreatePeriodModal({
         >
           Buat Periode
         </Button>
-        <p className="text-center text-xs text-slate-400">
+        <p className="text-center text-xs text-slate-400 dark:text-slate-500">
           Hanya satu periode aktif dalam satu waktu. Setelah ditutup, periode
           menjadi read-only permanen.
         </p>
