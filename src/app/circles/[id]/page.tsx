@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useToast } from "@/components/toast";
 import { useConfirm } from "@/components/confirm";
 import { DueDateReminder } from "@/components/due-date-reminder";
+import { BarChart, HorizontalBars } from "@/components/charts";
 import { exportBalanceHistoryCsv, exportContributionsCsv } from "@/lib/csv";
 import {
   useCircleDetail,
@@ -82,7 +83,7 @@ function Avatar({ name }: { name?: string | null }) {
 
 // ---------- page ----------
 
-type Tab = "ringkasan" | "anggota" | "periode" | "riwayat";
+type Tab = "ringkasan" | "anggota" | "periode" | "riwayat" | "statistik";
 
 export default function CircleDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -253,6 +254,7 @@ export default function CircleDetailPage() {
     { key: "anggota", label: `Anggota (${data.members.length})` },
     { key: "periode", label: "Periode" },
     { key: "riwayat", label: "Riwayat" },
+    { key: "statistik", label: "Statistik" },
   ];
 
   return (
@@ -748,6 +750,121 @@ export default function CircleDetailPage() {
               </Card>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ================= STATISTIK ================= */}
+      {tab === "statistik" && (
+        <div className="space-y-4">
+          {/* Kartu ringkas */}
+          <div className="grid grid-cols-3 gap-3">
+            <Card className="p-4 text-center">
+              <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                {data.periods.length}
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Periode</p>
+            </Card>
+            <Card className="p-4 text-center">
+              <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                {idr(
+                  data.contributions.reduce((s, c) => s + Number(c.amount), 0)
+                )}
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Total iuran</p>
+            </Card>
+            <Card className="p-4 text-center">
+              <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                {data.contributions.length}
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Pembayaran</p>
+            </Card>
+          </div>
+
+          {/* Tren per periode */}
+          <Card>
+            <h3 className="mb-1 font-bold text-slate-900 dark:text-slate-100">
+              Tren Pengumpulan
+            </h3>
+            <p className="mb-3 text-xs text-slate-400">Total iuran terkumpul per periode</p>
+            <BarChart
+              data={[...data.periods]
+                .sort((a, b) => (a.due_date < b.due_date ? -1 : 1))
+                .map((p) => ({
+                  label: p.name.length > 9 ? p.name.slice(0, 8) + "…" : p.name,
+                  value: data.contributions
+                    .filter((c) => c.period_id === p.id)
+                    .reduce((s, c) => s + Number(c.amount), 0),
+                }))}
+            />
+          </Card>
+
+          {/* Kontribusi per anggota */}
+          <Card>
+            <h3 className="mb-1 font-bold text-slate-900 dark:text-slate-100">
+              Kontribusi per Anggota
+            </h3>
+            <p className="mb-3 text-xs text-slate-400">Akumulasi pembayaran seluruh periode</p>
+            <HorizontalBars
+              data={data.members
+                .map((m) => ({
+                  label: m.profile?.full_name ?? "Anggota",
+                  value: data.contributions
+                    .filter((c) => c.member_id === m.id)
+                    .reduce((s, c) => s + Number(c.amount), 0),
+                }))
+                .sort((a, b) => b.value - a.value)}
+            />
+          </Card>
+
+          {/* Tingkat kelunasan */}
+          <Card>
+            <h3 className="mb-2 font-bold text-slate-900 dark:text-slate-100">
+              Kelunasan per Periode
+            </h3>
+            <div className="space-y-2">
+              {[...data.periods]
+                .sort((a, b) => (a.due_date < b.due_date ? -1 : 1))
+                .map((p) => {
+                  const lunas = data.members.filter(
+                    (m) => statusOf(data, m.id, p) === "lunas"
+                  ).length;
+                  const pct =
+                    data.members.length > 0
+                      ? Math.round((lunas / data.members.length) * 100)
+                      : 0;
+                  const enName = p.is_closed
+                    ? "Ditutup"
+                    : lunas >= data.members.length && data.members.length > 0
+                      ? "Lunas ✓"
+                      : "Berjalan";
+                  return (
+                    <div key={p.id} className="flex items-center gap-3">
+                      <span className="w-24 shrink-0 truncate text-xs font-medium text-slate-600 dark:text-slate-300">
+                        {p.name}
+                      </span>
+                      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            pct >= 100
+                              ? "bg-emerald-500"
+                              : pct >= 50
+                                ? "bg-amber-400"
+                                : "bg-rose-400"
+                          }`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <span className="w-8 shrink-0 text-right text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        {pct}%
+                      </span>
+                      <Badge tone={pct >= 100 ? "green" : pct >= 50 ? "amber" : "red"}>
+                        {enName}
+                      </Badge>
+                    </div>
+                  );
+                })}
+            </div>
+          </Card>
         </div>
       )}
 
