@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Badge, Button, Card, EmptyState, Input, Modal, idr } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useToast } from "@/components/toast";
+import { Landing } from "@/components/landing";
 import { useDemoSync, useMyCircles, useSession } from "@/hooks/use-teadrop";
 import * as api from "@/lib/api";
 import { isDemoMode } from "@/lib/env";
@@ -23,10 +24,8 @@ export default function HomePage() {
     !!user || isDemoMode
   );
 
-  // Belum login → paksa ke /login
-  useEffect(() => {
-    if (!sessionLoading && !user) router.replace("/login");
-  }, [sessionLoading, user, router]);
+  // Belum login & bukan demo mode → tampilkan landing page (bukan paksa /login)
+  const showLanding = !sessionLoading && !user && !isDemoMode;
 
   // Modals
   const [showCreate, setShowCreate] = useState(false);
@@ -90,12 +89,27 @@ export default function HomePage() {
     router.refresh();
   };
 
-  if (sessionLoading || (!user && !isDemoMode)) {
+  const handleDemoStart = async () => {
+    try {
+      await api.signIn("kamu@demo.id", "demo-password");
+    } catch {
+      /* demo mode always accepts any credentials */
+    }
+    await qc.invalidateQueries();
+    router.replace("/");
+    router.refresh();
+  };
+
+  if (sessionLoading) {
     return (
       <main className="grid min-h-dvh place-items-center">
         <span className="h-8 w-8 animate-spin rounded-full border-3 border-emerald-500 border-t-transparent" />
       </main>
     );
+  }
+
+  if (showLanding) {
+    return <Landing onDemoStart={handleDemoStart} />;
   }
 
   return (
@@ -148,11 +162,37 @@ export default function HomePage() {
             ))}
           </div>
         ) : !circles || circles.length === 0 ? (
-          <EmptyState
-            emoji="🫗"
-            title="Belum ada circle"
-            desc="Buat circle baru untuk mulai nabung bareng, atau gabung lewat kode undangan dari temanmu."
-          />
+          <div className="space-y-4">
+            <EmptyState
+              emoji="🫗"
+              title="Belum ada circle"
+              desc="Buat circle baru untuk mulai nabung bareng, atau gabung lewat kode undangan dari temanmu."
+            />
+            <Card>
+              <p className="mb-3 text-sm font-bold text-slate-900 dark:text-slate-100">
+                🚀 Mulai dalam 3 langkah
+              </p>
+              <ol className="space-y-2.5">
+                {[
+                  ["Buat circle", "beri nama, deskripsi, dan nominal iuran."],
+                  ["Bagikan kode", "undang teman lewat kode undangan."],
+                  ["Catat iuran", "buat periode bulanan dan pantau statusnya."],
+                ].map(([t, d], i) => (
+                  <li key={t} className="flex items-start gap-3">
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+                      {i + 1}
+                    </span>
+                    <div className="text-sm">
+                      <span className="font-semibold text-slate-800 dark:text-slate-100">
+                        {t}
+                      </span>{" "}
+                      <span className="text-slate-500 dark:text-slate-400">{d}</span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </Card>
+          </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {circles.map((c) => (
