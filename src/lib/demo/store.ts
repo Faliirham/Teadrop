@@ -163,6 +163,46 @@ function buildSeed(): DemoDB {
     { id: uid(), moment_id: mReuni.id, url: svgPhoto("🎓", "#6366f1", "#4338ca"), storage_path: null, created_at: now },
   ];
 
+  const inDays = (d: number, h = 19): string => {
+    const dt = new Date();
+    dt.setDate(dt.getDate() + d);
+    dt.setHours(h, 0, 0, 0);
+    return dt.toISOString();
+  };
+
+  const mtNgopi: Meetup = {
+    id: "mt-ngopi",
+    circle_id: c1,
+    title: "Ngopi bareng Jumat",
+    description: "Ngumpul santai sambil bahas kas bulan depan.",
+    location: "Kopi Kenangan, Setiabudi",
+    start_at: inDays(5),
+    created_by: dina.id,
+    created_at: now,
+  };
+  const mtReuniRapat: Meetup = {
+    id: "mt-reuni-rapat",
+    circle_id: c2,
+    title: "Rapat panitia reuni",
+    description: "Finalisasi venue & rundown acara.",
+    location: "Zoom",
+    start_at: inDays(14, 20),
+    created_by: me.id,
+    created_at: now,
+  };
+
+  const meetups: Meetup[] = [mtNgopi, mtReuniRapat];
+
+  const meetup_rsvps: MeetupRsvp[] = [
+    { id: uid(), meetup_id: mtNgopi.id, member_id: m1dina.id, status: "going", created_at: now },
+    { id: uid(), meetup_id: mtNgopi.id, member_id: m1rizky.id, status: "going", created_at: now },
+    { id: uid(), meetup_id: mtNgopi.id, member_id: m1sari.id, status: "maybe", created_at: now },
+    { id: uid(), meetup_id: mtNgopi.id, member_id: m1me.id, status: "going", created_at: now },
+    { id: uid(), meetup_id: mtReuniRapat.id, member_id: m2me.id, status: "going", created_at: now },
+    { id: uid(), meetup_id: mtReuniRapat.id, member_id: m2rizky.id, status: "going", created_at: now },
+    { id: uid(), meetup_id: mtReuniRapat.id, member_id: m2sari.id, status: "declined", created_at: now },
+  ];
+
   return {
     users: Object.fromEntries(
       [me, dina, rizky, sari].map((u) => [u.email.toLowerCase(), u])
@@ -178,8 +218,8 @@ function buildSeed(): DemoDB {
     balances,
     moments,
     moment_photos,
-    meetups: [],
-    meetup_rsvps: [],
+    meetups,
+    meetup_rsvps,
   };
 }
 

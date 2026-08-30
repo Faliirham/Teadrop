@@ -17,6 +17,9 @@ import type {
   Circle,
   CircleMember,
   Contribution,
+  Meetup,
+  MeetupRsvp,
+  MeetupStatus,
   Moment,
   MomentPhoto,
   MomentWithPhotos,
@@ -653,6 +656,142 @@ export async function deleteMoment(momentId: string): Promise<void> {
     .map((p) => p.storage_path)
     .filter((p): p is string => !!p);
   if (paths.length) await sb.storage.from("circle-photos").remove(paths);
+}
+
+// ============================================================
+// MEETUPS (kalender acara + RSVP)
+// ============================================================
+
+export interface MeetupWithRsvp extends Meetup {
+  created_by_name?: string;
+  rsvps: MeetupRsvp[];
+}
+
+export async function listMeetups(circleId: string): Promise<MeetupWithRsvp[]> {
+  const session = await getSessionUser();
+  if (!session) return [];
+
+  if (isDemoMode) {
+    const db = loadDB();
+    return db.meetups
+      .filter((m) => m.circle_id === circleId)
+      .sort((a, b) => (a.start_at < b.start_at ? -1 : 1))
+      .map((m) => ({
+        ...m,
+        created_by_name:
+          db.profiles.find((p) => p.id === m.created_by)?.full_name ?? "Anggota",
+        rsvps: db.meetup_rsvps.filter((r) => r.meetup_id === m.id),
+      }));
+  }
+
+  const sb = createClient();
+  const { data, error } = await sb
+    .from("meetups")
+    .select("*, creator:profiles(full_name)")
+    .eq("circle_id", circleId)
+    .order("start_at", { ascending: true });
+  if (error) throw new Error(error.message);
+
+  type MeetupRow = Meetup & { creator: { full_name: string | null } | null };
+  const rows = (data ?? []) as unknown as MeetupRow[];
+  const ids = rows.map((r) => r.id);
+
+  const { data: rsvps, error: e2 } = ids.length
+    ? await sb.from("meetup_rsvps").select("*").in("meetup_id", ids)
+    : { data: [], error: null };
+  if (e2) throw new Error(e2.message);
+
+  const rsvpList = (rsvps ?? []) as MeetupRsvp[];
+  return rows.map((r) => ({
+    ...r,
+    created_by_name: r.creator?.full_name ?? "Anggota",
+    rsvps: rsvpList.filter((x) => x.meetup_id === r.id),
+  }));
+}
+
+export async function createMeetup(input: {
+  circleId: string;
+  title: string;
+  description?: string | null;
+  location?: string | null;
+  startAt: string;
+}): Promise<void> {
+  const session = await getSessionUser();
+  if (!session) throw new Error("Belum login");
+
+  if (isDemoMode) {
+    const db = loadDB();
+    db.meetups.push({
+      id: uid(),
+      circle_id: input.circleId,
+      title: input.title.trim(),
+      description: input.description?.trim() || null,
+      location: input.location?.trim() || null,
+      start_at: input.startAt,
+      created_by: session.id,
+      created_at: new Date().toISOString(),
+    });
+    saveDB(db);
+    return;
+  }
+
+  const sb = createClient();
+  const { error } = await sb.from("meetups").insert({
+    circle_id: input.circleId,
+    title: input.title.trim(),
+    description: input.description?.trim() || null,
+    location: input.location?.trim() || null,
+    start_at: input.startAt,
+    created_by: session.id,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function rsvpMeetup(
+  meetupId: string,
+  memberId: string,
+  status: MeetupStatus
+): Promise<void> {
+  if (isDemoMode) {
+    const db = loadDB();
+    const existing = db.meetup_rsvps.find(
+      (r) => r.meetup_id === meetupId && r.member_id === memberId
+    );
+    if (existing) existing.status = status;
+    else
+      db.meetup_rsvps.push({
+        id: uid(),
+        meetup_id: meetupId,
+        member_id: memberId,
+        status,
+        created_at: new Date().toISOString(),
+      });
+    saveDB(db);
+    return;
+  }
+
+  const sb = createClient();
+  const { error } = await sb
+    .from("meetup_rsvps")
+    .upsert(
+      { meetup_id: meetupId, member_id: memberId, status },
+      { onConflict: "meetup_id,member_id" }
+    );
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteMeetup(meetupId: string): Promise<void> {
+  if (isDemoMode) {
+    const db = loadDB();
+    db.meetup_rsvps = db.meetup_rsvps.filter((r) => r.meetup_id !== meetupId);
+    db.meetups = db.meetups.filter((m) => m.id !== meetupId);
+    saveDB(db);
+    return;
+  }
+
+  const sb = createClient();
+  const { error } = await sb.from("meetups").delete().eq("id", meetupId);
+  if (error) throw new Error(error.message);
 }
 
 // ============================================================
