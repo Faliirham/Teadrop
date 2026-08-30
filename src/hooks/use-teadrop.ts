@@ -36,6 +36,8 @@ export function useCircleRealtime(circleId?: string): void {
     const invalidate = () => {
       void qc.invalidateQueries({ queryKey: ["circle", circleId] });
       void qc.invalidateQueries({ queryKey: ["circles"] });
+      void qc.invalidateQueries({ queryKey: ["moments", circleId] });
+      void qc.invalidateQueries({ queryKey: ["meetups", circleId] });
     };
 
     const channel = sb
@@ -60,6 +62,21 @@ export function useCircleRealtime(circleId?: string): void {
         { event: "*", schema: "public", table: "circle_members", filter: `circle_id=eq.${circleId}` },
         invalidate
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "moments", filter: `circle_id=eq.${circleId}` },
+        invalidate
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "meetups", filter: `circle_id=eq.${circleId}` },
+        invalidate
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "meetup_rsvps" },
+        invalidate
+      )
       .subscribe();
 
     return () => {
@@ -82,5 +99,21 @@ export function useCircleDetail(id: string | undefined, enabled: boolean) {
     queryFn: () => api.getCircleDetail(id as string),
     enabled: !!id && enabled,
     retry: false,
+  });
+}
+
+export function useMoments(circleId?: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["moments", circleId],
+    queryFn: () => api.listMoments(circleId ?? ""),
+    enabled: !!circleId && enabled,
+  });
+}
+
+export function useMeetups(circleId?: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["meetups", circleId],
+    queryFn: () => api.listMeetups(circleId ?? ""),
+    enabled: !!circleId && enabled,
   });
 }

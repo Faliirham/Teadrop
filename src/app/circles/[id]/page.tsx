@@ -11,11 +11,13 @@ import { useToast } from "@/components/toast";
 import { useConfirm } from "@/components/confirm";
 import { DueDateReminder } from "@/components/due-date-reminder";
 import { BarChart, HorizontalBars } from "@/components/charts";
+import { DiaryFeed, DiaryComposer } from "@/components/diary";
 import { exportBalanceHistoryCsv, exportContributionsCsv } from "@/lib/csv";
 import {
   useCircleDetail,
   useCircleRealtime,
   useDemoSync,
+  useMoments,
   useSession,
 } from "@/hooks/use-teadrop";
 import * as api from "@/lib/api";
@@ -83,7 +85,7 @@ function Avatar({ name }: { name?: string | null }) {
 
 // ---------- page ----------
 
-type Tab = "ringkasan" | "anggota" | "periode" | "riwayat" | "statistik";
+type Tab = "ringkasan" | "anggota" | "periode" | "riwayat" | "statistik" | "dokumentasi";
 
 export default function CircleDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -97,6 +99,7 @@ export default function CircleDetailPage() {
 
   const { data: user } = useSession();
   const { data, isLoading, error } = useCircleDetail(id, true);
+  const { data: moments } = useMoments(id, true);
 
   const [tab, setTab] = useState<Tab>("ringkasan");
   const [copied, setCopied] = useState(false);
@@ -255,6 +258,7 @@ export default function CircleDetailPage() {
     { key: "periode", label: "Periode" },
     { key: "riwayat", label: "Riwayat" },
     { key: "statistik", label: "Statistik" },
+    { key: "dokumentasi", label: "Dokumentasi" },
   ];
 
   return (
@@ -865,6 +869,27 @@ export default function CircleDetailPage() {
                 })}
             </div>
           </Card>
+</div>
+      )}
+      {/* ================= DOKUMENTASI ================= */}
+      {tab === "dokumentasi" && (
+        <div className="space-y-4">
+          <DiaryFeed
+            moments={moments?.length > 0 ? moments as MomentWithPhotos[] : []}
+            currentUserId={user?.id}
+            isAdmin={isAdmin}
+            onDelete={(id) => {
+              api.deleteMoment(id);
+              refresh();
+            }}
+          />
+
+          <DiaryComposer
+            onPost={(content, files) => {
+              api.addMoment({ circleId: id, content, files });
+              refresh();
+            }}
+          />
         </div>
       )}
 
