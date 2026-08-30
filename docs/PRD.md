@@ -96,5 +96,16 @@
 | Salah input saldo manual | Audit trail + wajib isi catatan perubahan |
 | Kode undangan bocor | Admin bisa regenerate; join selalu butuh persetujuan? (MVP: auto-join, evaluasi nanti) |
 
-## 8. Rilis Berikutnya (lihat ROADMAP.md)
-Diary kegiatan + galeri foto → kalender meetup → PWA installable → aplikasi native (Expo).
+## 8. Rilis Berikutnya
+
+### Fase 3 — Fitur Dokumentasi Circle (selesai)
+- **Diary kegiatan**: poster moment dengan foto (implementasi di `src/components/diary.tsx`, API di `src/lib/api.ts`, seed di `src/lib/demo/store.ts`)
+- **Galeri foto**: grid gallery dengan lightbox viewer (`src/components/gallery.tsx`)
+- **Kalender meetup**: daftar acara dengan RSVP (`src/lib/api.ts:createMeetup/rsvpMeetup`, `use-teadrop.ts`)
+- **Statistik kebersamaan**: grafik aktivitas per anggota & per periode (sudah ada di tab Statistik, perlu diagram per tahun)
+
+### Fase 4 — Native App (Expo)
+- Porting UI ke Expo (React Native) — reuse pola data & logika
+- Notifikasi native
+- Share ke grup WhatsApp (deep link invite)
+- Rilis APK internal circle

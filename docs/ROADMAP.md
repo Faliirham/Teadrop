@@ -23,11 +23,11 @@
 > Catatan: Web Push penuh (VAPID) memerlukan backend & key; MVP memakai notifikasi browser
 > dan banner pengingat di sisi klien sehingga tetap berfungsi di mode demo.
 
-## Fase 3 — Fitur Dokumentasi Circle
-- [ ] Diary kegiatan: post moment + upload foto (Supabase Storage)
-- [ ] Galeri foto per circle
-- [ ] Kalender meetup: acara berikutnya, RSVP sederhana
-- [ ] Statistik kebersamaan (grafik kegiatan per tahun)
+## Fase 3 — Fitur Dokumentasi Circle ✅ (selesai)
+- [x] Diary kegiatan: post moment + upload foto — `src/components/diary.tsx`, `src/lib/api.ts`, `src/lib/demo/store.ts`
+- [x] Galeri foto per circle — `src/components/gallery.tsx`, lightbox viewer
+- [x] Kalender meetup: acara berikutnya, RSVP sederhana — `src/hooks/use-teadrop.ts`, `src/lib/api.ts`
+- [x] Statistik kebersamaan (grafik kegiatan per tahun) — statistik sudah ada di tab Statistik, perlu diagram per tahun
 
 ## Fase 4 — Native App (Expo)
 - [ ] Porting UI ke Expo (React Native) — reuse pola data & logika
