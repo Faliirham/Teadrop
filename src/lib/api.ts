@@ -11,11 +11,15 @@ import {
 } from "./demo/store";
 import type { DemoUser } from "./demo/store";
 import { createClient } from "@/lib/supabase/client";
+import { uploadPhoto } from "./storage";
 import type {
   BalanceUpdate,
   Circle,
   CircleMember,
   Contribution,
+  Moment,
+  MomentPhoto,
+  MomentWithPhotos,
   Period,
   Profile,
   Role,
@@ -523,6 +527,132 @@ export async function deleteContribution(contributionId: string): Promise<void> 
   const sb = createClient();
   const { error } = await sb.from("contributions").delete().eq("id", contributionId);
   if (error) throw new Error(error.message);
+}
+
+// ============================================================
+// MOMENTS (diary kegiatan circle)
+// ============================================================
+
+export async function listMoments(circleId: string): Promise<MomentWithPhotos[]> {
+  const session = await getSessionUser();
+  if (!session) return [];
+
+  if (isDemoMode) {
+    const db = loadDB();
+    return db.moments
+      .filter((m) => m.circle_id === circleId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+      .map((m) => ({
+        ...m,
+        author_name:
+          db.profiles.find((p) => p.id === m.author_id)?.full_name ?? "Anggota",
+        photos: db.moment_photos
+          .filter((ph) => ph.moment_id === m.id)
+          .sort((a, b) => (a.created_at < b.created_at ? 1 : -1)),
+      }));
+  }
+
+  const sb = createClient();
+  const { data, error } = await sb
+    .from("moments")
+    .select("*, author:profiles(full_name)")
+    .eq("circle_id", circleId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+
+  type MomentRow = Moment & { author: { full_name: string | null } | null };
+  const rows = (data ?? []) as unknown as MomentRow[];
+  const ids = rows.map((r) => r.id);
+
+  const { data: photos, error: e2 } = ids.length
+    ? await sb
+        .from("moment_photos")
+        .select("*")
+        .in("moment_id", ids)
+        .order("created_at", { ascending: true })
+    : { data: [], error: null };
+  if (e2) throw new Error(e2.message);
+
+  const photoList = (photos ?? []) as MomentPhoto[];
+  return rows.map((r) => ({
+    ...r,
+    author_name: r.author?.full_name ?? "Anggota",
+    photos: photoList.filter((p) => p.moment_id === r.id),
+  }));
+}
+
+export async function addMoment(input: {
+  circleId: string;
+  content: string;
+  files: File[];
+}): Promise<void> {
+  const session = await getSessionUser();
+  if (!session) throw new Error("Belum login");
+
+  const momentId = uid();
+
+  if (isDemoMode) {
+    const db = loadDB();
+    db.moments.push({
+      id: momentId,
+      circle_id: input.circleId,
+      author_id: session.id,
+      content: input.content.trim(),
+      created_at: new Date().toISOString(),
+    });
+    for (const file of input.files) {
+      const { url } = await uploadPhoto(file, input.circleId, momentId);
+      db.moment_photos.push({
+        id: uid(),
+        moment_id: momentId,
+        url,
+        storage_path: null,
+        created_at: new Date().toISOString(),
+      });
+    }
+    saveDB(db);
+    return;
+  }
+
+  const sb = createClient();
+  const { error } = await sb.from("moments").insert({
+    id: momentId,
+    circle_id: input.circleId,
+    author_id: session.id,
+    content: input.content.trim(),
+  });
+  if (error) throw new Error(error.message);
+
+  for (const file of input.files) {
+    const { url, path } = await uploadPhoto(file, input.circleId, momentId);
+    const { error: pe } = await sb
+      .from("moment_photos")
+      .insert({ moment_id: momentId, url, storage_path: path });
+    if (pe) throw new Error(pe.message);
+  }
+}
+
+export async function deleteMoment(momentId: string): Promise<void> {
+  if (isDemoMode) {
+    const db = loadDB();
+    db.moment_photos = db.moment_photos.filter((p) => p.moment_id !== momentId);
+    db.moments = db.moments.filter((m) => m.id !== momentId);
+    saveDB(db);
+    return;
+  }
+
+  const sb = createClient();
+  const { data: photos } = await sb
+    .from("moment_photos")
+    .select("storage_path")
+    .eq("moment_id", momentId);
+  const { error } = await sb.from("moments").delete().eq("id", momentId);
+  if (error) throw new Error(error.message);
+
+  const paths = ((photos ?? []) as { storage_path: string | null }[])
+    .map((p) => p.storage_path)
+    .filter((p): p is string => !!p);
+  if (paths.length) await sb.storage.from("circle-photos").remove(paths);
 }
 
 // ============================================================

@@ -5,6 +5,10 @@ import type {
   Circle,
   CircleMember,
   Contribution,
+  Meetup,
+  MeetupRsvp,
+  Moment,
+  MomentPhoto,
   Period,
   Profile,
 } from "@/types/db";
@@ -27,12 +31,29 @@ export interface DemoDB {
   periods: Period[];
   contributions: Contribution[];
   balances: BalanceUpdate[];
+  moments: Moment[];
+  moment_photos: MomentPhoto[];
+  meetups: Meetup[];
+  meetup_rsvps: MeetupRsvp[];
 }
 
 export function uid(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto)
     return crypto.randomUUID();
   return `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** Placeholder foto demo berupa SVG data-URL kecil (hemat localStorage). */
+function svgPhoto(label: string, from: string, to: string): string {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">` +
+    `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+    `<stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/>` +
+    `</linearGradient></defs>` +
+    `<rect width="100%" height="100%" fill="url(#g)"/>` +
+    `<text x="50%" y="50%" font-size="56" fill="rgba(255,255,255,.9)" text-anchor="middle" dominant-baseline="middle">${label}</text>` +
+    `</svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
 function buildSeed(): DemoDB {
@@ -112,6 +133,36 @@ function buildSeed(): DemoDB {
     { id: uid(), circle_id: c2, previous_amount: 0, new_amount: 300000, note: "DP venue reuni via transfer", recorded_by: me.id, created_at: now },
   ];
 
+  const mNongkrong: Moment = {
+    id: "mm-nongkrong",
+    circle_id: c1,
+    author_id: dina.id,
+    content: "Nongkrong Jumat barusan rame banget! Kas-nya juga udah beres semua. ☕✨",
+    created_at: now,
+  };
+  const mSetor: Moment = {
+    id: "mm-setor",
+    circle_id: c1,
+    author_id: rizky.id,
+    content: "Setor iuran minggu ini udah gue transfer ya. Cek dashboard!",
+    created_at: now,
+  };
+  const mReuni: Moment = {
+    id: "mm-reuni",
+    circle_id: c2,
+    author_id: me.id,
+    content: "Reuni makin dekat, yuk kumpulin sisa target bulan ini! 🎓",
+    created_at: now,
+  };
+
+  const moments: Moment[] = [mNongkrong, mSetor, mReuni];
+
+  const moment_photos: MomentPhoto[] = [
+    { id: uid(), moment_id: mNongkrong.id, url: svgPhoto("🧋", "#10b981", "#0d9488"), storage_path: null, created_at: now },
+    { id: uid(), moment_id: mNongkrong.id, url: svgPhoto("🍵", "#14b8a6", "#0f766e"), storage_path: null, created_at: now },
+    { id: uid(), moment_id: mReuni.id, url: svgPhoto("🎓", "#6366f1", "#4338ca"), storage_path: null, created_at: now },
+  ];
+
   return {
     users: Object.fromEntries(
       [me, dina, rizky, sari].map((u) => [u.email.toLowerCase(), u])
@@ -125,6 +176,10 @@ function buildSeed(): DemoDB {
     periods: [pJuli, pAgs, pReuni],
     contributions,
     balances,
+    moments,
+    moment_photos,
+    meetups: [],
+    meetup_rsvps: [],
   };
 }
 
@@ -132,13 +187,23 @@ function buildSeed(): DemoDB {
 
 let cache: DemoDB | null = null;
 
+/** Isi array baru dari seed bila DB lama (versi sebelumnya) belum punya. */
+function migrateDB(db: DemoDB): DemoDB {
+  const seed = buildSeed();
+  if (!Array.isArray(db.moments)) db.moments = seed.moments;
+  if (!Array.isArray(db.moment_photos)) db.moment_photos = seed.moment_photos;
+  if (!Array.isArray(db.meetups)) db.meetups = seed.meetups;
+  if (!Array.isArray(db.meetup_rsvps)) db.meetup_rsvps = seed.meetup_rsvps;
+  return db;
+}
+
 export function loadDB(): DemoDB {
   if (typeof window === "undefined") throw new Error("Demo store hanya di client");
   if (cache) return cache;
   const raw = window.localStorage.getItem(DB_KEY);
   if (raw) {
     try {
-      cache = JSON.parse(raw) as DemoDB;
+      cache = migrateDB(JSON.parse(raw) as DemoDB);
       return cache;
     } catch {
       /* korup → reseed */
