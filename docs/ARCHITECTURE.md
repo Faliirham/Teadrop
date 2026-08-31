@@ -187,8 +187,10 @@ supabase/
 
 - **Vercel**: build `next build`; env `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
   (`NEXT_PUBLIC_SUPABASE_ANON_KEY` sebagai fallback).
-- **Supabase**: migrasi SQL via `supabase/migrations/*.sql` (dijalankan lewat Supabase CLI / SQL editor).
-  Termasuk `0003_read_links.sql` (read_token + RPC read-only).
+- **Supabase**: migrasi SQL via Supabase CLI (`npx supabase link` → `npm run db:push`),
+  migrasi berurut dari `supabase/migrations/*.sql`. Sudah terapkan `0001_init`,
+  `0002_circle_docs`, `0003_read_links` (read_token + RPC read-only) di project live.
+  Script `npm run db:seed` mengisi data contoh ke akun tertentu (dev-only).
 - **Google OAuth**: atur provider Google di dashboard Supabase (client ID/secret + redirect URL
   `/auth/callback`) sebelum Google login berfungsi di live.
 - Branch `main` = production preview.

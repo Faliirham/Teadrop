@@ -37,7 +37,7 @@
 - [x] ReactBits SpotlightCard (dikopi manual, tanpa gsap/three) — `components/reactbits/SpotlightCard.tsx`
 - [x] Perbaikan error TypeScript + build/lint bersih
 - [x] Perbaikan UX login: tombol "Coba Demo" yang stuck loading dihapus + session cache di-invalidate setelah login (dashboard langsung tampil data)
-- [ ] Migrasi SQL `0003_read_links.sql` dijalankan di Supabase (read_token + RPC)
+- [x] Migrasi SQL `0001`/`0002`/`0003` dijalankan di Supabase via CLI (`supabase db push`) — read_token + RPC aktif
 - [ ] Setup OAuth Google di dashboard Supabase (client ID/secret + redirect URL)
 
 ## Fase 5 — Native App (Expo)
