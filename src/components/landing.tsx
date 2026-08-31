@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Button, idr } from "@/components/ui";
 import { SpotlightCard } from "@/components/reactbits/SpotlightCard";
@@ -34,14 +33,7 @@ const SAMPLE = [
   { name: "Reuni Angkatan 2020", amount: 1200000 },
 ];
 
-export function Landing({ onDemoStart }: { onDemoStart: () => void }) {
-  const [demoBusy, setDemoBusy] = useState(false);
-
-  const startDemo = async () => {
-    setDemoBusy(true);
-    await onDemoStart();
-  };
-
+export function Landing() {
   return (
     <main className="min-h-dvh">
       <div className="mx-auto max-w-5xl px-4">
@@ -89,9 +81,6 @@ export function Landing({ onDemoStart }: { onDemoStart: () => void }) {
             <Link href="/login">
               <Button size="lg">Buat Circle Gratis</Button>
             </Link>
-            <Button variant="outline" size="lg" onClick={startDemo} loading={demoBusy}>
-              Coba Demo
-            </Button>
           </div>
         </section>
 

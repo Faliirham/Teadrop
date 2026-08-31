@@ -89,17 +89,6 @@ export default function HomePage() {
     router.refresh();
   };
 
-  const handleDemoStart = async () => {
-    try {
-      await api.signIn("kamu@demo.id", "demo-password");
-    } catch {
-      /* demo mode always accepts any credentials */
-    }
-    await qc.invalidateQueries();
-    router.replace("/");
-    router.refresh();
-  };
-
   if (sessionLoading) {
     return (
       <main className="grid min-h-dvh place-items-center">
@@ -109,7 +98,7 @@ export default function HomePage() {
   }
 
   if (showLanding) {
-    return <Landing onDemoStart={handleDemoStart} />;
+    return <Landing />;
   }
 
   return (

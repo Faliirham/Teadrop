@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button, Input } from "@/components/ui";
 import { SpotlightCard } from "@/components/reactbits/SpotlightCard";
@@ -26,6 +27,7 @@ export default function LoginPage() {
 
 function LoginForm() {
   const router = useRouter();
+  const qc = useQueryClient();
   const params = useSearchParams();
   const next = params.get("next") ?? "/";
 
@@ -41,6 +43,7 @@ function LoginForm() {
     setBusy("password");
     try {
       await signIn(email, password);
+      await qc.invalidateQueries({ queryKey: ["session"] });
       router.replace(next);
       router.refresh();
     } catch (err) {
@@ -60,6 +63,7 @@ function LoginForm() {
     try {
       await sendMagicLink(email, window.location.origin);
       if (isDemoMode) {
+        await qc.invalidateQueries({ queryKey: ["session"] });
         router.replace(next);
         router.refresh();
         return;
@@ -78,6 +82,7 @@ function LoginForm() {
     try {
       await signInWithGoogle(window.location.origin);
       if (isDemoMode) {
+        await qc.invalidateQueries({ queryKey: ["session"] });
         router.replace(next);
         router.refresh();
       }
