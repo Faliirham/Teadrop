@@ -38,6 +38,7 @@
 - [x] Perbaikan error TypeScript + build/lint bersih
 - [x] Perbaikan UX login: tombol "Coba Demo" yang stuck loading dihapus + session cache di-invalidate setelah login (dashboard langsung tampil data)
 - [x] Migrasi SQL `0001`/`0002`/`0003` dijalankan di Supabase via CLI (`supabase db push`) — read_token + RPC aktif
+- [x] Mode live aktif: env dipulihkan ke project live, dev server jalan terhadap database Supabase, login email/password `kamu@demo.id` terverifikasi
 - [ ] Setup OAuth Google di dashboard Supabase (client ID/secret + redirect URL)
 
 ## Fase 5 — Native App (Expo)
