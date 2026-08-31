@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
@@ -13,6 +13,8 @@ import { useDemoSync, useMyCircles, useSession } from "@/hooks/use-teadrop";
 import * as api from "@/lib/api";
 import { isDemoMode } from "@/lib/env";
 
+const ACTIVE_KEY = "teadrop:activeCircle";
+
 export default function HomePage() {
   const router = useRouter();
   const qc = useQueryClient();
@@ -24,12 +26,41 @@ export default function HomePage() {
     !!user || isDemoMode
   );
 
-  // Belum login & bukan demo mode → tampilkan landing page (bukan paksa /login)
   const showLanding = !sessionLoading && !user && !isDemoMode;
 
-  // Modals
+  const [activeId, setActiveId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem(ACTIVE_KEY);
+  });
+
+  const active = circles?.find((c) => c.id === activeId) ?? circles?.[0] ?? null;
+
+  const pickCircle = (id: string) => {
+    setActiveId(id);
+    try {
+      window.localStorage.setItem(ACTIVE_KEY, id);
+    } catch {
+      /* ignore */
+    }
+    setMenuOpen(false);
+  };
+
+  // Modals + dropdown open state
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [menuOpen]);
 
   const [cName, setCName] = useState("");
   const [cDesc, setCDesc] = useState("");
@@ -105,17 +136,63 @@ export default function HomePage() {
     <main className="min-h-dvh pb-16">
       {/* Header */}
       <header className="border-b border-border bg-surface/60 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-          <div>
-            <h1 className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-foreground">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent-soft text-accent">
-                <LeafIcon />
-              </span>
-              Teadrop
-            </h1>
-            <p className="text-xs text-muted">Halo, {user?.name}</p>
-          </div>
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-4">
+          <h1 className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-foreground">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent-soft text-accent">
+              <DropIcon />
+            </span>
+            Teadrop
+          </h1>
+
           <div className="flex items-center gap-2">
+            {!!circles && circles.length > 0 && (
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((o) => !o)}
+                  className="flex items-center gap-2 rounded-xl border border-border bg-surface/60 px-3 py-1.5 text-sm font-semibold text-foreground backdrop-blur-sm transition hover:bg-surface-2"
+                >
+                  <span className="max-w-[140px] truncate">{active?.name ?? "Pilih circle"}</span>
+                  <ChevronIcon className={`h-4 w-4 transition-transform ${menuOpen ? "rotate-180" : ""}`} />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 z-30 mt-2 w-64 overflow-hidden rounded-2xl border border-border bg-surface/95 p-1.5 shadow-xl backdrop-blur-xl">
+                    <p className="px-2 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
+                      Circlomu
+                    </p>
+                    {circles.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => pickCircle(c.id)}
+                        className={`flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left text-sm transition hover:bg-surface-2 ${
+                          c.id === active?.id ? "bg-accent-soft text-foreground" : "text-foreground"
+                        }`}
+                      >
+                        <span className="truncate font-medium">{c.name}</span>
+                        {c.id === active?.id && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />}
+                      </button>
+                    ))}
+                    <div className="mt-1 border-t border-border pt-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setShowCreate(true)}
+                        className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-sm font-medium text-accent transition hover:bg-surface-2"
+                      >
+                        <PlusIcon /> Buat Circle
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowJoin(true)}
+                        className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-sm font-medium text-accent transition hover:bg-surface-2"
+                      >
+                        <JoinIcon /> Gabung via Kode
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               Keluar
@@ -131,17 +208,6 @@ export default function HomePage() {
       </header>
 
       <div className="mx-auto max-w-4xl px-4 pt-6">
-        {/* Aksi */}
-        <div className="mb-5 flex gap-2">
-          <Button size="md" onClick={() => setShowCreate(true)}>
-            <PlusIcon /> Buat Circle
-          </Button>
-          <Button variant="outline" size="md" onClick={() => setShowJoin(true)}>
-            Gabung via Kode
-          </Button>
-        </div>
-
-        {/* Daftar circle */}
         {circlesLoading ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {[1, 2].map((i) => (
@@ -151,7 +217,7 @@ export default function HomePage() {
         ) : !circles || circles.length === 0 ? (
           <div className="space-y-4">
             <EmptyState
-              icon={<LeafIconBig />}
+              icon={<DropIconBig />}
               title="Belum ada circle"
               desc="Buat circle baru untuk mulai nabung bareng, atau gabung lewat kode undangan dari temanmu."
             />
@@ -175,30 +241,97 @@ export default function HomePage() {
                 ))}
               </ol>
             </Card>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowCreate(true)}>
+                <PlusIcon /> Buat Circle
+              </Button>
+              <Button variant="outline" onClick={() => setShowJoin(true)}>
+                Gabung via Kode
+              </Button>
+            </div>
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {circles.map((c) => (
-              <Link key={c.id} href={`/circles/${c.id}`} className="group">
-                <Card className="transition-all group-hover:border-accent/40 group-hover:shadow-[0_10px_40px_-18px_rgba(16,185,129,0.4)]">
-                  <div className="flex items-start justify-between gap-2">
-                    <h2 className="font-bold leading-snug text-foreground">{c.name}</h2>
-                    <Badge tone={c.role === "admin" ? "indigo" : "slate"}>
-                      {c.role === "admin" ? "Bendahara" : "Anggota"}
-                    </Badge>
+          <div className="space-y-5">
+            {/* Circle aktif */}
+            <Card className="group relative overflow-hidden">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h2 className="truncate text-xl font-extrabold leading-snug text-foreground">
+                      {active?.name ?? "Pilih circle di atas"}
+                    </h2>
+                    {active && (
+                      <Badge tone={active.role === "admin" ? "indigo" : "slate"}>
+                        {active.role === "admin" ? "Bendahara" : "Anggota"}
+                      </Badge>
+                    )}
                   </div>
-                  {c.description && (
-                    <p className="mt-1 line-clamp-2 text-sm text-muted">{c.description}</p>
+                  {active?.description && (
+                    <p className="mt-1 line-clamp-2 text-sm text-muted">{active.description}</p>
                   )}
-                  <div className="mt-3 flex items-center justify-between text-xs text-muted">
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
                     <span className="inline-flex items-center gap-1">
-                      <UsersIcon /> {c.memberCount} anggota
+                      <UsersIcon /> {active?.memberCount ?? 0} anggota
                     </span>
-                    <span>Iuran {idr(c.default_amount)}/bln</span>
+                    <span>Iuran {idr(active?.default_amount ?? 0)}/bln</span>
                   </div>
-                </Card>
-              </Link>
-            ))}
+                </div>
+                {active && (
+                  <Link
+                    href={`/circles/${active.id}`}
+                    className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-accent-strong px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4f46e5] active:scale-[0.98]"
+                  >
+                    Kelola Circle <ArrowIcon />
+                  </Link>
+                )}
+              </div>
+            </Card>
+
+            {/* Semua circle */}
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-sm font-semibold text-muted">
+                  Semua circle ({circles.length})
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowCreate(true)}
+                  className="text-sm font-semibold text-accent transition hover:underline"
+                >
+                  + Buat baru
+                </button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {circles.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => pickCircle(c.id)}
+                    className={`group flex items-center justify-between gap-2 rounded-2xl border p-4 text-left transition ${
+                      c.id === active?.id
+                        ? "border-accent/40 bg-surface-2"
+                        : "border-border bg-surface/60 hover:border-accent/30 hover:bg-surface-2"
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-bold leading-snug text-foreground">{c.name}</p>
+                      <p className="mt-1 text-xs text-muted">
+                        {c.memberCount} anggota · {idr(c.default_amount)}/bln
+                      </p>
+                    </div>
+                    <span
+                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full transition ${
+                        c.id === active?.id
+                          ? "bg-accent-soft text-accent"
+                          : "bg-surface-2 text-muted group-hover:text-accent"
+                      }`}
+                    >
+                      <CheckIcon />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -276,7 +409,7 @@ export default function HomePage() {
   );
 }
 
-function LeafIcon() {
+function DropIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
       <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
@@ -284,10 +417,26 @@ function LeafIcon() {
   );
 }
 
-function LeafIconBig() {
+function DropIconBig() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto h-10 w-10 text-muted">
       <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M5 12h14M12 5l7 7-7 7" />
     </svg>
   );
 }
@@ -300,12 +449,28 @@ function PlusIcon() {
   );
 }
 
+function JoinIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M15 3h4a1 1 0 0 1 1 1v4M9 21H5a1 1 0 0 1-1-1v-4M21 15v4a1 1 0 0 1-1 1h-4M9 9h6v6H9z" />
+    </svg>
+  );
+}
+
 function UsersIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
       <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M20 6 9 17l-5-5" />
     </svg>
   );
 }
