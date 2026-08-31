@@ -92,6 +92,20 @@ export async function sendMagicLink(
   if (error) throw new Error(error.message);
 }
 
+/** Akses Google OAuth (hanya mode live; di demo langsung login). */
+export async function signInWithGoogle(redirectBase: string): Promise<void> {
+  if (isDemoMode) {
+    demoSignIn("kamu@demo.id");
+    return;
+  }
+  const sb = createClient();
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${redirectBase}/auth/callback` },
+  });
+  if (error) throw new Error(error.message);
+}
+
 export async function signOut(): Promise<void> {
   if (isDemoMode) {
     demoSignOut();
@@ -338,6 +352,108 @@ export async function regenerateInvite(circleId: string): Promise<string> {
     .eq("id", circleId);
   if (error) throw new Error(error.message);
   return code;
+}
+
+// ============================================================
+// SHAREABLE READ-ONLY LINKS (Fase 4)
+// ============================================================
+
+export interface PublicCircle {
+  id: string;
+  name: string;
+  description: string | null;
+  default_amount: number;
+  created_at: string;
+  latest_balance: { new_amount: number; created_at: string } | null;
+  members: { id: string; role: Role; full_name: string | null }[];
+  active_period: {
+    id: string;
+    name: string;
+    due_date: string;
+    amount_per_member: number;
+    collected: number;
+  } | null;
+}
+
+/** Membaca snapshot circle tanpa login (via token di URL). Anon aman. */
+export async function getCirclePublic(token: string): Promise<PublicCircle | null> {
+  if (isDemoMode) {
+    // Mode demo: token adalah id circle, kembalikan data setara dari store.
+    const db = loadDB();
+    const circle = db.circles.find((c) => c.id === token && !c.deleted_at);
+    if (!circle) return null;
+    const members = db.members
+      .filter((m) => m.circle_id === circle.id)
+      .map((m) => {
+        const p = db.profiles.find((x) => x.id === m.user_id);
+        return { id: m.id, role: m.role, full_name: p?.full_name ?? null };
+      });
+    const periods = db.periods
+      .filter((p) => p.circle_id === circle.id)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+    const active = periods.find((p) => !p.is_closed) ?? null;
+    const latest = db.balances
+      .filter((b) => b.circle_id === circle.id)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0];
+    return {
+      id: circle.id,
+      name: circle.name,
+      description: circle.description,
+      default_amount: circle.default_amount,
+      created_at: circle.created_at,
+      latest_balance: latest
+        ? { new_amount: Number(latest.new_amount), created_at: latest.created_at }
+        : null,
+      members,
+      active_period: active
+        ? {
+            id: active.id,
+            name: active.name,
+            due_date: active.due_date,
+            amount_per_member: Number(active.amount_per_member),
+            collected: db.contributions
+              .filter((c) => c.period_id === active.id)
+              .reduce((s, c) => s + Number(c.amount), 0),
+          }
+        : null,
+    };
+  }
+
+  const sb = createClient();
+  const { data, error } = await sb.rpc("get_circle_public", { p_token: token });
+  if (error) throw new Error(error.message);
+  return (data ?? null) as PublicCircle | null;
+}
+
+/** Ambil read_token circle (dipakai tombol "Salin link lihat"). */
+export async function getCircleReadToken(circleId: string): Promise<string> {
+  if (isDemoMode) {
+    // Demo tidak punya token terpisah — pakai id circle sebagai token.
+    return circleId;
+  }
+  const sb = createClient();
+  const { data, error } = await sb
+    .from("circles")
+    .select("read_token")
+    .eq("id", circleId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  const token = (data as { read_token: string } | null)?.read_token;
+  if (!token) throw new Error("Circle belum punya link lihat.");
+  return token;
+}
+
+/** Rotasi (ganti) read_token — khusus admin. */
+export async function rotateReadToken(circleId: string): Promise<string> {
+  if (isDemoMode) {
+    return circleId;
+  }
+  const sb = createClient();
+  const { data, error } = await sb.rpc("rotate_read_token", {
+    p_circle_id: circleId,
+  });
+  if (error) throw new Error(error.message);
+  return data as string;
 }
 
 export async function setMemberRole(memberId: string, role: Role): Promise<void> {

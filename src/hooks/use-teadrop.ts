@@ -102,7 +102,7 @@ export function useCircleDetail(id: string | undefined, enabled: boolean) {
   });
 }
 
-export function useMoments(circleId?: string, enabled: boolean) {
+export function useMoments(circleId: string | undefined, enabled: boolean) {
   return useQuery({
     queryKey: ["moments", circleId],
     queryFn: () => api.listMoments(circleId ?? ""),
@@ -110,7 +110,7 @@ export function useMoments(circleId?: string, enabled: boolean) {
   });
 }
 
-export function useMeetups(circleId?: string, enabled: boolean) {
+export function useMeetups(circleId: string | undefined, enabled: boolean) {
   return useQuery({
     queryKey: ["meetups", circleId],
     queryFn: () => api.listMeetups(circleId ?? ""),

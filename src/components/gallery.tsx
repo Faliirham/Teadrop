@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Modal } from "@/components/ui";
-import { Button, Card } from "@/components/ui";
-import { idr } from "@/components/ui";
+import { Button, Modal } from "@/components/ui";
 
 type Photo = {
   url: string;
@@ -29,30 +27,29 @@ export function Gallery({ photos, onClose }: GalleryProps) {
   const images = photos.map((p) => p.url);
 
   const prev = () => {
-    setActive((active) => Math.max(0, active - 1));
+    setActive((a) => Math.max(0, a - 1));
   };
   const next = () => {
-    setActive((active) => Math.min(images.length - 1, active + 1));
+    setActive((a) => Math.min(images.length - 1, a + 1));
   };
 
   return (
     <>
       <GridGallery photos={photos} onImageClick={handleOpen} />
 
-      <Modal
-        open={open}
-        onClose={onClose}
-        title="Foto Momen"
-      >
-        <div className="flex flex-col h-full">
-          <div className="flex items-end justify-center h-64 overflow-hidden">
-            <img
-              src={images[active]}
-              alt=""
-              className="max-w-full max-h-full object-contain"
-            />
+      <Modal open={open} onClose={onClose} title="Foto Momen">
+        <div className="flex flex-col">
+          <div className="grid h-72 place-items-center overflow-hidden">
+            {images[active] && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={images[active]}
+                alt=""
+                className="max-h-full max-w-full object-contain"
+              />
+            )}
           </div>
-          <div className="flex gap-3 p-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="mt-4 flex items-center gap-3 border-t border-border pt-4">
             <Button
               variant="ghost"
               size="sm"
@@ -60,10 +57,10 @@ export function Gallery({ photos, onClose }: GalleryProps) {
               disabled={active === 0}
               className="flex-1"
             >
-              ← Sebelum
+              Sebelumnya
             </Button>
-            <span className="text-sm text-slate-500 dark:text-slate-400">
-              { `${active + 1} / ${images.length} ` }
+            <span className="text-sm text-muted">
+              {active + 1} / {images.length}
             </span>
             <Button
               variant="ghost"
@@ -72,7 +69,7 @@ export function Gallery({ photos, onClose }: GalleryProps) {
               disabled={active >= images.length - 1}
               className="flex-1"
             >
-              Selanjutnya →
+              Selanjutnya
             </Button>
           </div>
         </div>
@@ -81,27 +78,39 @@ export function Gallery({ photos, onClose }: GalleryProps) {
   );
 }
 
-function GridGallery({ photos, onImageClick }: { photos: Photo[]; onImageClick: (i: number) => void }) {
+function GridGallery({
+  photos,
+  onImageClick,
+}: {
+  photos: Photo[];
+  onImageClick: (i: number) => void;
+}) {
   const visible = photos.slice(0, MAX_GRID);
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {visible.map((p, i) => (
-        <Card
+        <button
           key={p.id}
-          className="p-3 hover:opacity-80 transition-opacity cursor-pointer"
+          type="button"
           onClick={() => onImageClick(i)}
+          className="group relative aspect-square overflow-hidden rounded-2xl border border-border bg-surface-2 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={p.url}
             alt=""
-            className="h-24 w-24 object-cover rounded-lg"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
-        </Card>
+        </button>
       ))}
       {photos.length > MAX_GRID && (
-        <Card className="p-3 text-slate-400 dark:text-slate-500 text-sm">
-          +{photos.length - MAX_GRID} foto lainnya
-        </Card>
+        <button
+          type="button"
+          onClick={() => onImageClick(MAX_GRID - 1)}
+          className="grid aspect-square place-items-center rounded-2xl border border-dashed border-border bg-surface/60 text-sm font-semibold text-muted"
+        >
+          +{photos.length - MAX_GRID} foto
+        </button>
       )}
     </div>
   );

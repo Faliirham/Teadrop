@@ -16,6 +16,7 @@ export interface Circle {
   default_amount: number;
   created_by: string;
   deleted_at: string | null;
+  read_token?: string | null;
   created_at: string;
 }
 

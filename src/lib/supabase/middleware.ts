@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { isDemoMode } from "@/lib/env";
+import { isDemoMode, supabaseKey } from "@/lib/env";
 
 const PROTECTED_PREFIXES = ["/circles", "/join", "/settings"];
 const AUTH_PAGES = ["/login"];
@@ -9,7 +9,7 @@ function buildClient(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseKey(),
     {
       cookies: {
         getAll() {
