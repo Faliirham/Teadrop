@@ -93,7 +93,7 @@
 - RPC `rotate_read_token` khusus admin untuk mencabut akses link lama.
 
 ### F8 — Redesign UI "Ethereal Glass" (Dark-first)
-- Skema warna default **gelap** (OLED `#050505`) dengan aksen emerald tunggal; mode terang opt-in.
+- Skema warna default **gelap** (OLED `#050505`) dengan aksen indigo/violet tunggal; mode terang opt-in.
 - Glassmorphism pada kartu/container mengambang, nebula ambient + film grain di latar.
 - Primitif UI (`ui.tsx`) & ikon SVG menggantikan emoji dan class `slate`/`dark:` lama.
 

@@ -40,6 +40,11 @@
 - [x] Migrasi SQL `0001`/`0002`/`0003` dijalankan di Supabase via CLI (`supabase db push`) — read_token + RPC aktif
 - [x] Mode live aktif: env dipulihkan ke project live, dev server jalan terhadap database Supabase, login email/password `kamu@demo.id` terverifikasi
 - [x] Seed data contoh ke project live: `scripts/seed-demo.ts` (`npm run db:seed -- --email <email>`) — circle "Squad Teh Tarik" + 4 anggota + 2 periode + kontribusi + saldo + momen/foto + meetup/RSVP
+- [x] Rebrand: accent emerald → indigo/violet + ikon daun → droplet (tidak ada hijau tersisa) — `globals.css`, `ui.tsx`, `landing.tsx`, `login`, `pwa-installer`, `manifest`, demo/seed
+- [x] Halaman kelola circle baru di `/`: header dropdown circle switcher + panel circle aktif + daftar circle + empty state; `CircleManager` di-extract ke `components/circle-manager.tsx` (deep-link `/circles/[id]` tetap jalan)
+- [x] Alur pembayaran disederhanakan: tombol umum "Catat Pembayaran" + dropdown anggota dihapus; kini per-member "Catat" dengan member ter-preset
+- [x] Migrasi `0004_fix_rls` dijalankan di Supabase live — invite_code server-side, `read_token` admin-only (column-revoke + RPC `get_read_token`), storage hanya member circle, `contrib_update_admin_open` + WITH CHECK
+- [x] Fix auth: callback meneruskan & mensanitasi `next` (open-redirect aman) sehingga magic link/Google kembali ke halaman asal
 - [ ] Setup OAuth Google di dashboard Supabase (client ID/secret + redirect URL)
 
 ## Fase 5 — Native App (Expo)

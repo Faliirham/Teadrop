@@ -120,7 +120,7 @@ erDiagram
 | D3 | Soft delete untuk circle | Mencegah hilangnya riwayat finansial karena salah klik |
 | D4 | RLS berbasis fungsi `is_circle_member(circle_id)` | Satu policy reusable, mudah diaudit |
 | D5 | Realtime via channel per-circle (`circle:<id>`) | Hemat bandwidth, hanya data circle aktif |
-| D6 | Read-only share via `read_token` publik + RPC `get_circle_public` | Bisa dibuka tanpa login; tak pernah membocorkan `invite_code`/data edit |
+| D6 | Read-only share via `read_token` publik + RPC `get_circle_public`; token hanya di-expose via RPC `get_read_token` (admin-only, column-revoke) | Bisa dibuka tanpa login; tak pernah membocorkan `invite_code`/data edit; anggota non-admin tak bisa memaksa membaca `read_token` |
 | D7 | ReactBits komponen efek dikopi manual (non-gsap) | Hindari dependensi berat (gsap/three); hanya komponen ringan yang relevan |
 | D8 | Token warna dark-first (`--background/--foreground/--accent`) | Tema konsisten, mode terang opt-in via `.light` |
 
@@ -129,9 +129,9 @@ erDiagram
 ```
 src/
 ├── app/                          # routes (App Router)
-│   ├── page.tsx                  # landing (guest) → dashboard (login/demo)
+│   ├── page.tsx                  # landing (guest) → shell kelola circle (header dropdown switcher, berisi panel circle aktif + daftar circle + empty state)
 │   ├── login/page.tsx            # autentikasi (Google + magic link)
-│   ├── circles/[id]/page.tsx     # sidebar circle dengan tab (ringkasan/anggota/periode/riwayat/statistik/dokumentasi)
+│   ├── circles/[id]/page.tsx     # thin wrapper → render <CircleManager/> (deep link)/
 │   ├── c/[token]/page.tsx        # halaman lihat read-only (tanpa login) via read_token
 │   ├── auth/callback/route.ts    # penukaran auth code (google/magic link)
 │   ├── manifest.ts               # Web App Manifest (PWA)
@@ -139,6 +139,7 @@ src/
 │   └── layout.tsx
 ├── components/
 │   ├── ui.tsx                    # primitives (Button/Card/Input/Badge/Modal/EmptyState) — token
+│   ├── circle-manager.tsx        # UI detail circle (tab ringkasan/anggota/periode/riwayat/statistik/dokumentasi) + semua modal aksi; terima prop `circleId` (fallback param dinamis)
 │   ├── theme.tsx                 # ThemeProvider + boot script (dark-first)
 │   ├── theme-toggle.tsx          # toggle mode gelap/terang
 │   ├── toast.tsx / confirm.tsx   # notifikasi & dialog konfirmasi (token)
@@ -164,6 +165,7 @@ supabase/
     ├── 0001_init.sql             # skema inti + RLS
     ├── 0002_circle_docs.sql      # moments, moment_photos, meetups, meetup_rsvps
     ├── 0003_read_links.sql       # read_token + RPC get_circle_public/rotate_read_token
+    ├── 0004_fix_rls.sql          # invite_code server-side; read_token column-revoke + get_read_token; storage member-only; contrib WITH CHECK
     ├── config.toml               # config CLI lokal (supabase init)
     └── .temp/                    # cache CLI (di-gitignore)
 
@@ -184,9 +186,19 @@ scripts/
 3. Realtime broadcast → dashboard semua anggota ter-update otomatis.
 
 ### Link Lihat (Read-only)
-1. Admin menyalin link dari tab Anggota (mengambil `read_token` via RPC/list).
+1. Admin menyalin link dari tab Anggota (mengambil `read_token` via RPC `get_read_token`, admin-only).
 2. Penerima membuka `c/[token]` tanpa login → RPC `get_circle_public` mengembalikan snapshot aman.
 3. Jika link bocor, admin memanggil `rotate_read_token` → `read_token` lama tak valid lagi.
+
+### Kelola Circle (post-login `/`)
+1. User login → halaman `/` jadi shell kelola; header menampilkan dropdown pemilih circle.
+2. Dropdown & panel menampilkan ringkasan circle aktif; tombol "Kelola Circle" → `/circles/[id]` (render `CircleManager`).
+3. Tanpa circle → empty state onboarding + tombol Buat/Gabung. `/circles/[id]` tetap bisa di-deep-link.
+
+### Catat Pembayaran
+1. Admin membuka tab Ringkasan/Periode; per anggota yang belum lunas tersedia aksi **"Catat"**.
+2. Klik "Catat" membuka modal dengan **member sudah ter-preset** (tanpa dropdown anggota) → isi nominal/metode/catatan → simpan sebagai `contributions` (RLS: hanya admin periode terbuka, `WITH CHECK`).
+3. Tidak ada lagi tombol umum "Catat Pembayaran" dengan pemilih anggota.
 
 ## 7. Deployment
 
@@ -194,7 +206,8 @@ scripts/
   (`NEXT_PUBLIC_SUPABASE_ANON_KEY` sebagai fallback).
 - **Supabase**: migrasi SQL via Supabase CLI (`npx supabase link` → `npm run db:push`),
   migrasi berurut dari `supabase/migrations/*.sql`. Sudah terapkan `0001_init`,
-  `0002_circle_docs`, `0003_read_links` (read_token + RPC read-only) di project live.
+  `0002_circle_docs`, `0003_read_links`, `0004_fix_rls` (invite_code server-side,
+  read_token admin-only, storage member-only) di project live.
 - **Seed (dev-only)**: `npm run db:seed -- --email <akun>` mengisi data contoh ke project
   live — script `scripts/seed-demo.ts` memakai `SUPABASE_SERVICE_ROLE_KEY` (lokal, tidak
   di-commit), idempotent (reset circle lama yang dibuat admin sebelum isi ulang), dan

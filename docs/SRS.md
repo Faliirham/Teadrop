@@ -34,7 +34,7 @@ Versi: 1.0 · Merujuk pada [PRD.md](./PRD.md)
 
 ### FR-4 Kontribusi
 - FR-4.1 Pembayaran dicatat dengan: anggota target, jumlah, tanggal bayar, metode (`cash|transfer|qris|lainnya`), catatan opsional.
-- FR-4.2 Admin dapat mencatat pembayaran untuk semua anggota; member hanya untuk dirinya sendiri.
+- FR-4.2 Admin dapat mencatat pembayaran untuk semua anggota — via aksi per-anggota **"Catat"** (member ter-preset, tanpa dropdown pemilih); member hanya melihat status dirinya sendiri.
 - FR-4.3 Edit/hapus kontribusi hanya oleh admin, dan hanya pada periode aktif.
 - FR-4.4 Status lunas anggota = total kontribusinya ≥ nominal periode.
 - FR-4.5 Kontribusi melebihi nominal dihitung sebagai kelebihan (tidak error).
