@@ -61,7 +61,7 @@ export function PwaInstaller() {
         </div>
         <button
           onClick={install}
-          className="shrink-0 rounded-lg bg-accent-strong px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#0d9280]"
+          className="shrink-0 rounded-lg bg-accent-strong px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#4f46e5]"
         >
           Pasang
         </button>

@@ -68,7 +68,7 @@ export function Landing() {
           <h1 className="mx-auto mt-5 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl">
             Kelola iuran bersama,
             <br />
-            <span className="bg-gradient-to-r from-accent to-teal-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-accent to-indigo-400 bg-clip-text text-transparent">
               transparan & realtime
             </span>
           </h1>
@@ -137,8 +137,7 @@ export function Landing() {
 function LeafIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+      <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
     </svg>
   );
 }

@@ -183,7 +183,7 @@ export default function HomePage() {
                 <Card className="transition-all group-hover:border-accent/40 group-hover:shadow-[0_10px_40px_-18px_rgba(16,185,129,0.4)]">
                   <div className="flex items-start justify-between gap-2">
                     <h2 className="font-bold leading-snug text-foreground">{c.name}</h2>
-                    <Badge tone={c.role === "admin" ? "green" : "slate"}>
+                    <Badge tone={c.role === "admin" ? "indigo" : "slate"}>
                       {c.role === "admin" ? "Bendahara" : "Anggota"}
                     </Badge>
                   </div>
@@ -279,8 +279,7 @@ export default function HomePage() {
 function LeafIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+      <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
     </svg>
   );
 }
@@ -288,8 +287,7 @@ function LeafIcon() {
 function LeafIconBig() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto h-10 w-10 text-muted">
-      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+      <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
     </svg>
   );
 }

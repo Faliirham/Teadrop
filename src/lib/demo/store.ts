@@ -158,8 +158,8 @@ function buildSeed(): DemoDB {
   const moments: Moment[] = [mNongkrong, mSetor, mReuni];
 
   const moment_photos: MomentPhoto[] = [
-    { id: uid(), moment_id: mNongkrong.id, url: svgPhoto("🧋", "#10b981", "#0d9488"), storage_path: null, created_at: now },
-    { id: uid(), moment_id: mNongkrong.id, url: svgPhoto("🍵", "#14b8a6", "#0f766e"), storage_path: null, created_at: now },
+    { id: uid(), moment_id: mNongkrong.id, url: svgPhoto("🧋", "#6366f1", "#4f46e5"), storage_path: null, created_at: now },
+    { id: uid(), moment_id: mNongkrong.id, url: svgPhoto("🍵", "#8b5cf6", "#6d28d9"), storage_path: null, created_at: now },
     { id: uid(), moment_id: mReuni.id, url: svgPhoto("🎓", "#6366f1", "#4338ca"), storage_path: null, created_at: now },
   ];
 

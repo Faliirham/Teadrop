@@ -93,7 +93,7 @@ export default function CirclePublicPage() {
                       {fmtDate(data.active_period.due_date)}
                     </p>
                   </div>
-                  <Badge tone="green">Aktif</Badge>
+                  <Badge tone="indigo">Aktif</Badge>
                 </div>
                 <div className="mt-3 text-xs text-muted">
                   Terkumpul {idr(Number(data.active_period.collected))}
@@ -116,7 +116,7 @@ export default function CirclePublicPage() {
                     <span className="text-sm font-medium text-foreground">
                       {m.full_name ?? "Anggota"}
                     </span>
-                    <Badge tone={m.role === "admin" ? "green" : "slate"}>
+                    <Badge tone={m.role === "admin" ? "indigo" : "slate"}>
                       {m.role === "admin" ? "Bendahara" : "Anggota"}
                     </Badge>
                   </li>
@@ -127,7 +127,7 @@ export default function CirclePublicPage() {
             {/* CTA */}
             <Link
               href="/login"
-              className="block rounded-xl bg-accent-strong px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#0d9280] active:scale-[0.99]"
+              className="block rounded-xl bg-accent-strong px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#4f46e5] active:scale-[0.99]"
             >
               {session.data ? "Kelola circle ini" : "Masuk untuk mengelola"}
             </Link>

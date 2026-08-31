@@ -7,7 +7,7 @@ type Size = "sm" | "md" | "lg";
 
 const VARIANT: Record<Variant, string> = {
   primary:
-    "bg-accent-strong text-white hover:bg-[#0d9280] active:scale-[0.98] shadow-[0_8px_30px_-8px_rgba(16,185,129,0.5)]",
+    "bg-accent-strong text-white hover:bg-[#4f46e5] active:scale-[0.98] shadow-[0_8px_30px_-8px_rgba(99,102,241,0.5)]",
   outline:
     "border-border bg-surface/60 text-foreground hover:bg-surface-2 active:scale-[0.98] backdrop-blur-sm",
   danger: "bg-rose-500/90 text-white hover:bg-rose-500 active:scale-[0.98]",
@@ -94,10 +94,10 @@ export function Input({
   );
 }
 
-type Tone = "green" | "amber" | "red" | "slate" | "sky";
+type Tone = "indigo" | "amber" | "red" | "slate" | "sky";
 
 const TONE: Record<Tone, string> = {
-  green: "bg-accent-soft text-accent ring-accent-strong/30",
+  indigo: "bg-accent-soft text-accent ring-accent-strong/30",
   amber: "bg-amber-500/10 text-amber-400 ring-amber-500/30",
   red: "bg-rose-500/10 text-rose-400 ring-rose-500/30",
   slate: "bg-surface-2 text-muted ring-border",

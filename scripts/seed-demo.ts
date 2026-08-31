@@ -233,8 +233,8 @@ async function main() {
   const { error: errMoments } = await sb.from("moments").insert([mom1, mom2]);
   if (errMoments) throw new Error(`moments: ${errMoments.message}`);
   const { error: errPhotos } = await sb.from("moment_photos").insert([
-    { moment_id: mom1.id, url: svgPhoto("Teh", "#10b981", "#0d9488"), storage_path: null, created_at: now },
-    { moment_id: mom1.id, url: svgPhoto("Jumat", "#14b8a6", "#0f766e"), storage_path: null, created_at: now },
+    { moment_id: mom1.id, url: svgPhoto("Teh", "#6366f1", "#4f46e5"), storage_path: null, created_at: now },
+    { moment_id: mom1.id, url: svgPhoto("Jumat", "#8b5cf6", "#6d28d9"), storage_path: null, created_at: now },
     { moment_id: mom2.id, url: svgPhoto("Setor", "#6366f1", "#4338ca"), storage_path: null, created_at: now },
   ]);
   if (errPhotos) throw new Error(`photos: ${errPhotos.message}`);

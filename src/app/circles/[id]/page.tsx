@@ -59,7 +59,7 @@ function statusOf(detail: CircleDetail, memberId: string, p: Period): PayStatus 
 }
 
 const STATUS_TONE = {
-  lunas: "green",
+  lunas: "indigo",
   sebagian: "amber",
   belum: "red",
 } as const;
@@ -68,7 +68,7 @@ const STATUS_LABEL = { lunas: "Lunas", sebagian: "Sebagian", belum: "Belum" } as
 const METHOD_TONE = {
   cash: "slate",
   transfer: "sky",
-  qris: "green",
+  qris: "indigo",
   other: "amber",
 } as const;
 
@@ -372,7 +372,7 @@ export default function CircleDetailPage() {
       {tab === "ringkasan" && (
         <div className="space-y-4">
           {/* Saldo */}
-          <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-emerald-500/30 via-surface to-surface p-6 text-foreground shadow-[0_10px_40px_-18px_rgba(16,185,129,0.5)]">
+          <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-indigo-500/30 via-surface to-surface p-6 text-foreground shadow-[0_10px_40px_-18px_rgba(99,102,241,0.5)]">
             <div className="flex items-start justify-between">
               <p className="text-sm text-muted">Dana terkumpul saat ini</p>
               {isAdmin && (
@@ -416,7 +416,7 @@ export default function CircleDetailPage() {
                     })()}
                   </p>
                 </div>
-                <Badge tone={activePeriod.is_closed ? "slate" : "green"}>
+                <Badge tone={activePeriod.is_closed ? "slate" : "indigo"}>
                   {activePeriod.is_closed ? "Ditutup" : "Aktif"}
                 </Badge>
               </div>
@@ -565,7 +565,7 @@ export default function CircleDetailPage() {
                   </p>
                   <p className="truncate text-xs text-muted">gabung {fmtDate(m.joined_at)}</p>
                 </div>
-                <Badge tone={m.role === "admin" ? "green" : "slate"}>
+                <Badge tone={m.role === "admin" ? "indigo" : "slate"}>
                   {m.role === "admin" ? "Bendahara" : "Anggota"}
                 </Badge>
                 {isAdmin && m.user_id !== user?.id && (
@@ -649,7 +649,7 @@ export default function CircleDetailPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <Badge tone={p.is_closed ? "slate" : "green"}>
+                    <Badge tone={p.is_closed ? "slate" : "indigo"}>
                       {p.is_closed ? "Ditutup" : "Aktif"}
                     </Badge>
                     <p className="mt-1 text-xs text-muted">
@@ -825,7 +825,7 @@ export default function CircleDetailPage() {
                         <p className="text-sm font-bold text-foreground">
                           {idr(Number(b.new_amount))}
                         </p>
-                        <Badge tone={diff >= 0 ? "green" : "red"}>
+                        <Badge tone={diff >= 0 ? "indigo" : "red"}>
                           {diff >= 0 ? "+" : ""}
                           {idr(diff)}
                         </Badge>
@@ -936,7 +936,7 @@ export default function CircleDetailPage() {
                       <span className="w-8 shrink-0 text-right text-xs font-semibold text-muted">
                         {pct}%
                       </span>
-                      <Badge tone={pct >= 100 ? "green" : pct >= 50 ? "amber" : "red"}>
+                      <Badge tone={pct >= 100 ? "indigo" : pct >= 50 ? "amber" : "red"}>
                         {enName}
                       </Badge>
                     </div>
