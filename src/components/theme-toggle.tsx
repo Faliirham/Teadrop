@@ -13,7 +13,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       onClick={toggle}
       aria-label={isDark ? "Aktifkan mode terang" : "Aktifkan mode gelap"}
       title={isDark ? "Mode terang" : "Mode gelap"}
-      className={`relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:scale-105 hover:border-slate-300 hover:text-slate-900 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-white ${className}`}
+      className={`relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-border bg-surface/60 text-muted backdrop-blur-sm transition-all hover:scale-105 hover:text-foreground active:scale-95 ${className}`}
     >
       {/* Sun */}
       <svg

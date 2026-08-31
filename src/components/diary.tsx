@@ -17,7 +17,7 @@ function fmtDateTime(iso: string): string {
 function Avatar({ name }: { name?: string }) {
   const initial = (name ?? "?").trim().charAt(0).toUpperCase();
   return (
-    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold text-accent">
       {initial}
     </span>
   );
@@ -42,10 +42,7 @@ export function DiaryComposer({
     const room = MAX_PHOTOS - files.length;
     const next = Array.from(list).slice(0, room);
     setFiles((prev) => [...prev, ...next]);
-    setPreviews((prev) => [
-      ...prev,
-      ...next.map((f) => URL.createObjectURL(f)),
-    ]);
+    setPreviews((prev) => [...prev, ...next.map((f) => URL.createObjectURL(f))]);
   };
 
   const removeFile = (i: number) => {
@@ -78,13 +75,14 @@ export function DiaryComposer({
         placeholder="Ceritakan momen circle kalian…"
         maxLength={500}
         rows={2}
-        className="w-full resize-none rounded-xl border border-slate-200 bg-transparent px-3 py-2.5 text-sm text-slate-800 outline-none placeholder:text-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-emerald-500/20"
+        className="w-full resize-none rounded-xl border border-border bg-transparent px-3 py-2.5 text-sm text-foreground outline-none transition placeholder:text-muted/50 focus:border-accent focus:ring-2 focus:ring-accent-soft"
       />
 
       {previews.length > 0 && (
         <div className="mt-2 grid grid-cols-4 gap-2">
           {previews.map((src, i) => (
             <div key={i} className="relative aspect-square overflow-hidden rounded-xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={src} alt={`preview ${i + 1}`} className="h-full w-full object-cover" />
               <button
                 type="button"
@@ -92,7 +90,7 @@ export function DiaryComposer({
                 className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-[10px] text-white"
                 title="hapus"
               >
-                ✕
+                ×
               </button>
             </div>
           ))}
@@ -104,9 +102,9 @@ export function DiaryComposer({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={files.length >= MAX_PHOTOS}
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 disabled:text-slate-300 dark:text-slate-400 dark:hover:bg-slate-700"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-muted transition hover:bg-surface-2 hover:text-foreground disabled:text-muted/40"
         >
-          📷 Foto {files.length > 0 && `(${files.length}/${MAX_PHOTOS})`}
+          <CameraIcon /> Foto {files.length > 0 && `(${files.length}/${MAX_PHOTOS})`}
         </button>
         <input
           ref={inputRef}
@@ -130,9 +128,7 @@ export function DiaryComposer({
       </div>
 
       {err && (
-        <p className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
-          {err}
-        </p>
+        <p className="mt-2 rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">{err}</p>
       )}
     </Card>
   );
@@ -152,7 +148,7 @@ export function DiaryFeed({
   if (moments.length === 0) {
     return (
       <EmptyState
-        emoji="📔"
+        icon={<DiaryIcon />}
         title="Belum ada momen"
         desc="Jadikan diary bersama — catat kegiatan, upload foto, kenang bareng."
       />
@@ -168,26 +164,22 @@ export function DiaryFeed({
             <div className="flex items-center gap-3">
               <Avatar name={m.author_name} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
+                <p className="truncate text-sm font-semibold text-foreground">
                   {m.author_name ?? "Anggota"}
                 </p>
-                <p className="text-xs text-slate-400 dark:text-slate-400">
-                  {fmtDateTime(m.created_at)}
-                </p>
+                <p className="text-xs text-muted">{fmtDateTime(m.created_at)}</p>
               </div>
               {canDelete && (
                 <button
                   onClick={() => onDelete(m.id)}
-                  className="text-xs text-slate-300 hover:text-rose-500 dark:text-slate-500 dark:hover:text-rose-400"
+                  className="text-xs text-muted/50 transition hover:text-rose-400"
                   title="hapus"
                 >
-                  ✕
+                  hapus
                 </button>
               )}
             </div>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">
-              {m.content}
-            </p>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{m.content}</p>
             {m.photos.length > 0 && (
               <div
                 className="mt-2 grid gap-1.5"
@@ -196,6 +188,7 @@ export function DiaryFeed({
                 }}
               >
                 {m.photos.map((p) => (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     key={p.id}
                     src={p.url}
@@ -209,5 +202,23 @@ export function DiaryFeed({
         );
       })}
     </div>
+  );
+}
+
+function CameraIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
+  );
+}
+
+function DiaryIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto h-10 w-10 text-muted">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </svg>
   );
 }

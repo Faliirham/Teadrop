@@ -3,34 +3,35 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button, idr } from "@/components/ui";
+import { SpotlightCard } from "@/components/reactbits/SpotlightCard";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const FEATURES = [
   {
-    icon: "🔴",
+    icon: <RealtimeIcon />,
     title: "Realtime & transparan",
     desc: "Total dana dan status pembayaran terlihat semua anggota tanpa perlu nanya-nanya.",
   },
   {
-    icon: "👥",
+    icon: <UsersIcon />,
     title: "Kode undangan",
     desc: "Bendahara buat circle, teman gabung cukup lewat kode. Role admin & anggota jelas.",
   },
   {
-    icon: "📅",
+    icon: <CalendarIcon />,
     title: "Periode bulanan",
     desc: "Buat periode iuran, catat pembayaran cash/transfer/QRIS, pantau siapa belum lunas.",
   },
   {
-    icon: "🏦",
+    icon: <BankIcon />,
     title: "Audit saldo",
     desc: "Update saldo manual dengan jejak riwayat: siapa, kapan, dari berapa ke berapa.",
   },
 ];
 
 const SAMPLE = [
-  { name: "Squad Teh Tarik 🧋", amount: 350000 },
-  { name: "Reuni Angkatan 2020 🎓", amount: 1200000 },
+  { name: "Squad Teh Tarik", amount: 350000 },
+  { name: "Reuni Angkatan 2020", amount: 1200000 },
 ];
 
 export function Landing({ onDemoStart }: { onDemoStart: () => void }) {
@@ -42,13 +43,15 @@ export function Landing({ onDemoStart }: { onDemoStart: () => void }) {
   };
 
   return (
-    <main className="min-h-dvh bg-gradient-to-b from-emerald-50 via-white to-emerald-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
+    <main className="min-h-dvh">
       <div className="mx-auto max-w-5xl px-4">
         {/* header */}
         <nav className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🍃</span>
-            <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent-soft text-accent">
+              <LeafIcon />
+            </span>
+            <span className="text-lg font-extrabold tracking-tight text-foreground">
               Teadrop
             </span>
           </div>
@@ -67,19 +70,19 @@ export function Landing({ onDemoStart }: { onDemoStart: () => void }) {
 
         {/* hero */}
         <section className="py-16 text-center sm:py-24">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-            💧 Tabungan bersama circle, tanpa drama
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-xs font-semibold text-accent">
+            <DropIcon /> Tabungan bersama circle, tanpa drama
           </span>
-          <h1 className="mx-auto mt-5 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-slate-100 sm:text-5xl">
+          <h1 className="mx-auto mt-5 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl">
             Kelola iuran bersama,
             <br />
-            <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-accent to-teal-400 bg-clip-text text-transparent">
               transparan & realtime
             </span>
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-base text-slate-500 dark:text-slate-400">
-            Buat circle, kumpulkan iuran, dan pantau siapa yang sudah bayar —
-            semuanya di satu tempat dan bisa diakses semua anggota.
+          <p className="mx-auto mt-4 max-w-xl text-base text-muted">
+            Buat circle, kumpulkan iuran, dan pantau siapa yang sudah bayar — semuanya
+            di satu tempat dan bisa diakses semua anggota.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -87,7 +90,7 @@ export function Landing({ onDemoStart }: { onDemoStart: () => void }) {
               <Button size="lg">Buat Circle Gratis</Button>
             </Link>
             <Button variant="outline" size="lg" onClick={startDemo} loading={demoBusy}>
-              🚀 Coba Demo
+              Coba Demo
             </Button>
           </div>
         </section>
@@ -95,51 +98,101 @@ export function Landing({ onDemoStart }: { onDemoStart: () => void }) {
         {/* feature list */}
         <section className="grid gap-4 py-8 sm:grid-cols-2">
           {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800"
-            >
-              <span className="text-2xl">{f.icon}</span>
+            <SpotlightCard key={f.title} className="flex items-start gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+                {f.icon}
+              </span>
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-slate-100">{f.title}</h3>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{f.desc}</p>
+                <h3 className="font-bold text-foreground">{f.title}</h3>
+                <p className="mt-1 text-sm text-muted">{f.desc}</p>
               </div>
-            </div>
+            </SpotlightCard>
           ))}
         </section>
 
         {/* sample circles */}
         <section className="pb-20">
-          <h2 className="mb-4 text-center text-sm font-semibold uppercase tracking-wide text-slate-400">
+          <h2 className="mb-4 text-center text-sm font-semibold uppercase tracking-wide text-muted">
             Begini tampilannya
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {SAMPLE.map((c) => (
-              <div
-                key={c.name}
-                className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800"
-              >
+              <SpotlightCard key={c.name}>
                 <div className="flex items-start justify-between">
-                  <h3 className="font-bold text-slate-900 dark:text-slate-100">{c.name}</h3>
-                  <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                  <h3 className="font-bold text-foreground">{c.name}</h3>
+                  <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent">
                     Bendahara
                   </span>
                 </div>
-                <div className="mt-4 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 p-4 text-white">
-                  <p className="text-xs text-emerald-100">Dana terkumpul</p>
-                  <p className="mt-1 text-2xl font-extrabold">{idr(c.amount)}</p>
+                <div className="mt-4 rounded-xl border border-border bg-surface-2 p-4">
+                  <p className="text-xs text-muted">Dana terkumpul</p>
+                  <p className="mt-1 text-2xl font-extrabold text-accent">
+                    {idr(c.amount)}
+                  </p>
                 </div>
                 <div className="mt-3 flex items-center gap-2">
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-                    <div className="h-full w-3/4 rounded-full bg-emerald-500" />
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
+                    <div className="h-full w-3/4 rounded-full bg-accent-strong" />
                   </div>
-                  <span className="text-xs text-slate-400">75%</span>
+                  <span className="text-xs text-muted">75%</span>
                 </div>
-              </div>
+              </SpotlightCard>
             ))}
           </div>
         </section>
       </div>
     </main>
+  );
+}
+
+function LeafIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+    </svg>
+  );
+}
+
+function DropIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5">
+      <path d="M12 2.7S5.5 9.4 5.5 14.4a6.5 6.5 0 0 0 13 0C18.5 9.4 12 2.7 12 2.7Z" />
+    </svg>
+  );
+}
+
+function RealtimeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+      <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+    </svg>
+  );
+}
+
+function UsersIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </svg>
+  );
+}
+
+function BankIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+      <path d="M3 21h18M4 21V10M20 21V10M4 10l8-6 8 6M8 21v-7M12 21v-7M16 21v-7" />
+    </svg>
   );
 }

@@ -7,16 +7,16 @@ type Size = "sm" | "md" | "lg";
 
 const VARIANT: Record<Variant, string> = {
   primary:
-    "bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-slate-700 dark:disabled:text-slate-500",
+    "bg-accent-strong text-white hover:bg-[#0d9280] active:scale-[0.98] shadow-[0_8px_30px_-8px_rgba(16,185,129,0.5)]",
   outline:
-    "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:text-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:disabled:text-slate-600",
-  danger: "bg-rose-500 text-white hover:bg-rose-600",
+    "border-border bg-surface/60 text-foreground hover:bg-surface-2 active:scale-[0.98] backdrop-blur-sm",
+  danger: "bg-rose-500/90 text-white hover:bg-rose-500 active:scale-[0.98]",
   ghost:
-    "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700",
+    "text-muted hover:bg-surface-2 hover:text-foreground active:scale-[0.98]",
 };
 
 const SIZE: Record<Size, string> = {
-  sm: "px-3 py-1.5 text-sm rounded-lg",
+  sm: "px-3 py-1.5 text-sm rounded-xl",
   md: "px-4 py-2.5 text-sm rounded-xl",
   lg: "w-full px-4 py-3 text-base rounded-xl",
 };
@@ -36,7 +36,7 @@ export function Button({
     <button
       {...props}
       disabled={props.disabled || loading}
-      className={`inline-flex items-center justify-center gap-2 font-semibold transition-colors ${VARIANT[variant]} ${SIZE[size]} cursor-pointer disabled:cursor-not-allowed`}
+      className={`inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 ease-out ${VARIANT[variant]} ${SIZE[size]} cursor-pointer disabled:cursor-not-allowed disabled:opacity-40`}
     >
       {loading && (
         <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -55,7 +55,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800 ${className}`}
+      className={`glass rounded-2xl p-5 shadow-[0_10px_40px_-18px_rgba(0,0,0,0.6)] ${className}`}
     >
       {children}
     </div>
@@ -76,22 +76,20 @@ export function Input({
   return (
     <label className="block">
       {label && (
-        <span className="mb-1.5 block text-sm font-medium text-slate-600 dark:text-slate-300">
+        <span className="mb-1.5 block text-sm font-medium text-muted">
           {label}
         </span>
       )}
       <input
         {...props}
-        className={`w-full rounded-xl border px-4 py-2.5 text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-emerald-500/20 ${
-          error ? "border-rose-400" : "border-slate-300 dark:border-slate-600"
+        className={`w-full rounded-xl border bg-surface/60 px-4 py-2.5 text-foreground outline-none transition placeholder:text-muted/50 focus:border-accent focus:ring-2 focus:ring-accent-soft ${
+          error ? "border-rose-400" : "border-border"
         } ${className}`}
       />
       {hint && !error && (
-        <span className="mt-1 block text-xs text-slate-400 dark:text-slate-500">
-          {hint}
-        </span>
+        <span className="mt-1 block text-xs text-muted">{hint}</span>
       )}
-      {error && <span className="mt-1 block text-xs text-rose-500">{error}</span>}
+      {error && <span className="mt-1 block text-xs text-rose-400">{error}</span>}
     </label>
   );
 }
@@ -99,14 +97,11 @@ export function Input({
 type Tone = "green" | "amber" | "red" | "slate" | "sky";
 
 const TONE: Record<Tone, string> = {
-  green:
-    "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30",
-  amber:
-    "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30",
-  red: "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/30",
-  slate:
-    "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-600",
-  sky: "bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-500/10 dark:text-sky-300 dark:ring-sky-500/30",
+  green: "bg-accent-soft text-accent ring-accent-strong/30",
+  amber: "bg-amber-500/10 text-amber-400 ring-amber-500/30",
+  red: "bg-rose-500/10 text-rose-400 ring-rose-500/30",
+  slate: "bg-surface-2 text-muted ring-border",
+  sky: "bg-sky-500/10 text-sky-400 ring-sky-500/30",
 };
 
 export function Badge({
@@ -139,17 +134,17 @@ export function Modal({
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-6 dark:bg-black/70"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-md sm:items-center sm:p-6"
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white p-6 shadow-xl sm:rounded-2xl dark:bg-slate-800 animate-modal-in"
+        className="glass max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl shadow-2xl sm:rounded-2xl animate-modal-in"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-slate-100">
-          {title}
-        </h3>
-        {children}
+        <div className="p-6">
+          <h3 className="mb-4 text-lg font-bold text-foreground">{title}</h3>
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -157,23 +152,23 @@ export function Modal({
 
 export function EmptyState({
   emoji,
+  icon,
   title,
   desc,
   children,
 }: {
-  emoji: string;
+  emoji?: string;
+  icon?: ReactNode;
   title: string;
   desc?: string;
   children?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-6 py-12 text-center dark:border-slate-600 dark:bg-slate-800/50">
-      <div className="text-4xl">{emoji}</div>
-      <p className="mt-3 font-semibold text-slate-700 dark:text-slate-200">{title}</p>
+    <div className="rounded-2xl border border-dashed border-border bg-surface/40 px-6 py-12 text-center">
+      {icon ?? (emoji ? <div className="text-4xl">{emoji}</div> : null)}
+      <p className="mt-3 font-semibold text-foreground">{title}</p>
       {desc && (
-        <p className="mx-auto mt-1 max-w-xs text-sm text-slate-400 dark:text-slate-400">
-          {desc}
-        </p>
+        <p className="mx-auto mt-1 max-w-xs text-sm text-muted">{desc}</p>
       )}
       {children}
     </div>

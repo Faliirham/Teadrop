@@ -4,9 +4,10 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-import { Button, Card, Input } from "@/components/ui";
+import { Button, Input } from "@/components/ui";
+import { SpotlightCard } from "@/components/reactbits/SpotlightCard";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { signIn, sendMagicLink } from "@/lib/api";
+import { signIn, sendMagicLink, signInWithGoogle } from "@/lib/api";
 import { isDemoMode } from "@/lib/env";
 
 export default function LoginPage() {
@@ -14,7 +15,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <main className="grid min-h-dvh place-items-center">
-          <span className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+          <span className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
         </main>
       }
     >
@@ -30,7 +31,7 @@ function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState<"none" | "password" | "magic">("none");
+  const [busy, setBusy] = useState<"none" | "password" | "magic" | "google">("none");
   const [error, setError] = useState<string | null>(null);
   const [magicSent, setMagicSent] = useState(false);
 
@@ -71,87 +72,170 @@ function LoginForm() {
     }
   };
 
+  const handleGoogle = async () => {
+    setError(null);
+    setBusy("google");
+    try {
+      await signInWithGoogle(window.location.origin);
+      if (isDemoMode) {
+        router.replace(next);
+        router.refresh();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal masuk dengan Google");
+    } finally {
+      setBusy("none");
+    }
+  };
+
   return (
-    <main className="relative flex min-h-dvh items-center justify-center bg-gradient-to-b from-emerald-50 to-white px-4 dark:from-slate-900 dark:to-slate-900">
+    <main className="relative flex min-h-dvh items-center justify-center px-4">
       <div className="absolute right-4 top-4">
         <ThemeToggle />
       </div>
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="text-5xl">🍃</div>
-          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-accent">
+            <LeafLogo />
+          </div>
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-foreground">
             Teadrop
           </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-sm text-muted">
             Tabungan bersama circle — transparan & realtime
           </p>
         </div>
 
-        <Card className="space-y-4">
+        <SpotlightCard className="p-6">
           {isDemoMode && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-              <b>MODE DEMO</b> — data tersimpan di browser ini saja.
-              Masuk dengan email apa pun (mis. <code>kamu@demo.id</code>) untuk
-              mencoba dengan data contoh.
+            <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs leading-relaxed text-amber-300">
+              <b>MODE DEMO</b> — data tersimpan di browser ini saja. Masuk dengan
+              email apa pun (mis. <code>kamu@demo.id</code>) untuk mencoba dengan
+              data contoh.
             </div>
           )}
 
           {magicSent && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-              ✉️ Magic link terkirim! Cek inbox email kamu.
+            <div className="mb-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent">
+              Magic link terkirim! Cek inbox email kamu.
             </div>
           )}
 
-          <form onSubmit={handlePassword} className="space-y-4">
-            <Input
-              label="Email"
-              type="email"
-              required
-              placeholder="kamu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-            <Input
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              hint={isDemoMode ? "Di mode demo password diabaikan" : undefined}
-            />
-            {error && (
-              <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
-                {error}
-              </p>
-            )}
-            <Button type="submit" size="lg" loading={busy === "password"}>
-              Masuk
+          <div className="space-y-4">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleGoogle}
+              loading={busy === "google"}
+            >
+              <GoogleMark /> Masuk dengan Google
             </Button>
-          </form>
 
-          <div className="flex items-center gap-3 text-xs text-slate-300 dark:text-slate-600">
-            <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-            atau
-            <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+            <Divider label="atau pakai email" />
+
+            <form onSubmit={handlePassword} className="space-y-4">
+              <Input
+                label="Email"
+                type="email"
+                required
+                placeholder="kamu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+              <Input
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                hint={isDemoMode ? "Di mode demo password diabaikan" : undefined}
+              />
+              {error && (
+                <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+                  {error}
+                </p>
+              )}
+              <Button type="submit" size="lg" loading={busy === "password"}>
+                Masuk
+              </Button>
+            </form>
+
+            <Divider label="atau" />
+
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleMagic}
+              loading={busy === "magic"}
+            >
+              <MailIcon /> Masuk via Magic Link
+            </Button>
+
+            <p className="pt-1 text-center text-xs text-muted">
+              Belum punya akun? Cukup masuk — akun dibuat otomatis.
+            </p>
           </div>
+        </SpotlightCard>
 
-          <Button variant="outline" size="lg" onClick={handleMagic} loading={busy === "magic"}>
-            ✉️ Masuk via Magic Link
-          </Button>
-
-          <p className="pt-1 text-center text-xs text-slate-400 dark:text-slate-500">
-            Belum punya akun? Cukup masuk — akun dibuat otomatis.
-          </p>
-        </Card>
-
-        <p className="mt-6 text-center text-xs text-slate-400 dark:text-slate-500">
-          <Link href="/" className="hover:text-slate-600 dark:hover:text-slate-300">
-            ← Kembali ke beranda
+        <p className="mt-6 text-center text-xs text-muted">
+          <Link href="/" className="transition hover:text-foreground">
+            Kembali ke beranda
           </Link>
         </p>
       </div>
     </main>
+  );
+}
+
+function Divider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 text-xs text-muted/60">
+      <span className="h-px flex-1 bg-border" />
+      {label}
+      <span className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
+function LeafLogo() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-10 6L2 7" />
+    </svg>
+  );
+}
+
+function GoogleMark() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" className="shrink-0">
+      <path
+        fill="#FFC107"
+        d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
+      />
+      <path
+        fill="#FF3D00"
+        d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
+      />
+      <path
+        fill="#4CAF50"
+        d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
+      />
+      <path
+        fill="#1976D2"
+        d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+      />
+    </svg>
   );
 }

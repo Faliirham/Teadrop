@@ -51,28 +51,37 @@ export function PwaInstaller() {
 
   return (
     <div className="fixed inset-x-0 bottom-4 z-[60] flex justify-center px-4">
-      <div className="flex w-full max-w-sm items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700 dark:bg-slate-800">
-        <span className="text-2xl">📲</span>
+      <div className="glass flex w-full max-w-sm items-center gap-3 rounded-2xl p-4 shadow-xl">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+          <MobileIcon />
+        </span>
         <div className="flex-1 text-sm leading-snug">
-          <b className="text-slate-900 dark:text-slate-100">Pasang Teadrop</b>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Instal ke layar beranda untuk akses cepat.
-          </p>
+          <b className="text-foreground">Pasang Teadrop</b>
+          <p className="text-xs text-muted">Instal ke layar beranda untuk akses cepat.</p>
         </div>
         <button
           onClick={install}
-          className="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+          className="shrink-0 rounded-lg bg-accent-strong px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#0d9280]"
         >
           Pasang
         </button>
         <button
           onClick={() => setShowPrompt(false)}
-          className="shrink-0 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          className="shrink-0 text-xs text-muted transition hover:text-foreground"
           aria-label="Tutup"
         >
           ✕
         </button>
       </div>
     </div>
+  );
+}
+
+function MobileIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+      <rect x="5" y="2" width="14" height="20" rx="2" />
+      <path d="M12 18h.01" />
+    </svg>
   );
 }

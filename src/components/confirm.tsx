@@ -45,13 +45,13 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
           onClick={() => finish(false)}
         >
           <div
-            className="w-full max-w-sm overflow-hidden rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800"
+            className="glass w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            <h3 className="text-lg font-bold text-foreground">
               {state!.opts.title}
             </h3>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-300">
+            <p className="mt-2 text-sm text-muted">
               {state!.opts.message}
             </p>
             <div className="mt-6 flex justify-end gap-2">

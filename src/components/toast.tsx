@@ -24,18 +24,17 @@ type ToastApi = {
 
 const ToastContext = createContext<ToastApi | null>(null);
 
-const ICON: Record<ToastKind, string> = {
-  success: "✅",
-  error: "⚠️",
-  info: "💡",
-};
-
 const KIND_CLASS: Record<ToastKind, string> = {
   success:
-    "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-200",
-  error:
-    "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200",
-  info: "border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-200",
+    "border-accent/40 bg-surface/90 text-foreground",
+  error: "border-rose-500/40 bg-surface/90 text-foreground",
+  info: "border-sky-500/40 bg-surface/90 text-foreground",
+};
+
+const KIND_ICON: Record<ToastKind, string> = {
+  success: "text-accent",
+  error: "text-rose-400",
+  info: "text-sky-400",
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
@@ -70,9 +69,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             key={t.id}
             type="button"
             onClick={() => remove(t.id)}
-            className={`pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-lg animate-[toast-in_0.25s_ease-out] ${KIND_CLASS[t.kind]}`}
+            className={`pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-lg backdrop-blur-xl animate-[toast-in_0.25s_ease-out] ${KIND_CLASS[t.kind]}`}
           >
-            <span className="text-base leading-none">{ICON[t.kind]}</span>
+            <span className={`mt-0.5 ${KIND_ICON[t.kind]}`}>
+              {t.kind === "success" ? <CheckIcon /> : t.kind === "error" ? <AlertIcon /> : <InfoIcon />}
+            </span>
             <span className="flex-1 leading-snug">{t.message}</span>
             <span className="text-xs opacity-40">✕</span>
           </button>
@@ -86,4 +87,29 @@ export function useToast(): ToastApi {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error("useToast must be used within <ToastProvider>");
   return ctx;
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+function AlertIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4M12 8h.01" />
+    </svg>
+  );
 }

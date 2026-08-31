@@ -32,7 +32,7 @@ export function BarChart({ data }: { data: BarPoint[] }) {
               x2={W - pad}
               y1={y}
               y2={y}
-              className="stroke-slate-200 dark:stroke-slate-700"
+              className="stroke-border"
               strokeWidth="1"
               strokeDasharray="4 4"
             />
@@ -53,7 +53,7 @@ export function BarChart({ data }: { data: BarPoint[] }) {
                   width={barW + 6}
                   height={H - 40}
                   rx={6}
-                  className="fill-emerald-500/10"
+                  className="fill-accent-soft"
                 />
               )}
               <rect
@@ -63,9 +63,7 @@ export function BarChart({ data }: { data: BarPoint[] }) {
                 height={Math.max(barH, d.value > 0 ? 2 : 0)}
                 rx={5}
                 className={`cursor-pointer transition-all duration-300 ${
-                  active
-                    ? "fill-emerald-600 dark:fill-emerald-400"
-                    : "fill-emerald-400 dark:fill-emerald-500/60"
+                  active ? "fill-accent-strong" : "fill-accent/60"
                 }`}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
@@ -74,7 +72,7 @@ export function BarChart({ data }: { data: BarPoint[] }) {
                 x={x + barW / 2}
                 y={H - 10}
                 textAnchor="middle"
-                className="fill-slate-400 text-[9px] dark:fill-slate-500"
+                className="fill-muted text-[9px]"
               >
                 {d.label}
               </text>
@@ -83,7 +81,7 @@ export function BarChart({ data }: { data: BarPoint[] }) {
                   x={x + barW / 2}
                   y={y - 6}
                   textAnchor="middle"
-                  className="fill-slate-700 text-[10px] font-semibold dark:fill-slate-200"
+                  className="fill-foreground text-[10px] font-semibold"
                 >
                   {idr(d.value)}
                 </text>
@@ -107,16 +105,16 @@ export function HorizontalBars({
     <div className="space-y-2.5">
       {data.map((d) => (
         <div key={d.label} className="flex items-center gap-3">
-          <span className="w-24 shrink-0 truncate text-xs font-medium text-slate-600 dark:text-slate-300">
+          <span className="w-24 shrink-0 truncate text-xs font-medium text-muted">
             {d.label}
           </span>
-          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2">
             <div
-              className="h-full rounded-full bg-emerald-500 transition-all duration-500 dark:bg-emerald-400"
+              className="h-full rounded-full bg-accent-strong transition-all duration-500"
               style={{ width: `${(d.value / max) * 100}%` }}
             />
           </div>
-          <span className="w-16 shrink-0 text-right text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <span className="w-16 shrink-0 text-right text-xs font-semibold text-muted">
             {idr(d.value)}
           </span>
         </div>

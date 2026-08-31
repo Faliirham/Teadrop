@@ -32,7 +32,7 @@ export function DueDateReminder({ detail }: ReminderProps) {
         days === 0
           ? `Hari ini jatuh tempo "${active.name}"!`
           : `"${active.name}" jatuh tempo ${days} hari lagi.`;
-      new Notification("📅 Teadrop — Ingatkan iuran", {
+      new Notification("Teadrop — Ingatkan iuran", {
         body: msg,
         tag: `teadrop-due-${active.id}`,
       });
@@ -59,13 +59,11 @@ export function DueDateReminder({ detail }: ReminderProps) {
     <div
       className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${
         overdue
-          ? "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200"
-          : "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200"
+          ? "border-rose-500/40 bg-rose-500/10 text-rose-300"
+          : "border-amber-500/40 bg-amber-500/10 text-amber-300"
       }`}
     >
-      <span className="text-xl">
-        {overdue ? "🚨" : isToday ? "⏰" : "📅"}
-      </span>
+      <span className="shrink-0 text-muted">{overdue ? <AlertIcon /> : <CalendarIcon />}</span>
       <div className="flex-1 text-sm leading-snug">
         <b>{active!.name}</b>{" "}
         {overdue
@@ -77,18 +75,35 @@ export function DueDateReminder({ detail }: ReminderProps) {
       {canAsk && (
         <button
           onClick={() => Notification.requestPermission()}
-          className="shrink-0 rounded-lg bg-white/70 px-3 py-1 text-xs font-semibold hover:bg-white dark:bg-slate-800 dark:hover:bg-slate-700"
+          className="shrink-0 rounded-lg bg-surface-2 px-3 py-1 text-xs font-semibold transition hover:bg-surface-2/70"
         >
           Aktifkan notifikasi
         </button>
       )}
       <button
         onClick={() => setDismissed(true)}
-        className="shrink-0 text-xs opacity-50 hover:opacity-100"
+        className="shrink-0 text-xs opacity-50 transition hover:opacity-100"
         aria-label="Tutup pengingat"
       >
         ✕
       </button>
     </div>
+  );
+}
+
+function AlertIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </svg>
   );
 }

@@ -53,7 +53,7 @@ export default function HomePage() {
       setShowCreate(false);
       setCName("");
       setCDesc("");
-      toast.success("Circle berhasil dibuat 🎉");
+      toast.success("Circle berhasil dibuat");
       await qc.invalidateQueries({ queryKey: ["circles"] });
       router.push(`/circles/${id}`);
     } catch (e) {
@@ -103,7 +103,7 @@ export default function HomePage() {
   if (sessionLoading) {
     return (
       <main className="grid min-h-dvh place-items-center">
-        <span className="h-8 w-8 animate-spin rounded-full border-3 border-emerald-500 border-t-transparent" />
+        <span className="h-8 w-8 animate-spin rounded-full border-3 border-accent border-t-transparent" />
       </main>
     );
   }
@@ -113,17 +113,18 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-dvh bg-slate-50 pb-16 dark:bg-slate-900">
+    <main className="min-h-dvh pb-16">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+      <header className="border-b border-border bg-surface/60 backdrop-blur-xl">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
           <div>
-            <h1 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
-              🍃 Teadrop
+            <h1 className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-foreground">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent-soft text-accent">
+                <LeafIcon />
+              </span>
+              Teadrop
             </h1>
-            <p className="text-xs text-slate-400 dark:text-slate-400">
-              Halo, {user?.name} 👋
-            </p>
+            <p className="text-xs text-muted">Halo, {user?.name}</p>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -133,7 +134,7 @@ export default function HomePage() {
           </div>
         </div>
         {isDemoMode && (
-          <div className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+          <div className="border-t border-border bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-300">
             <b>MODE DEMO</b> — data contoh disimpan di browser ini. Isi{" "}
             <code>.env.local</code> dengan key Supabase untuk mode live.
           </div>
@@ -144,7 +145,7 @@ export default function HomePage() {
         {/* Aksi */}
         <div className="mb-5 flex gap-2">
           <Button size="md" onClick={() => setShowCreate(true)}>
-            ＋ Buat Circle
+            <PlusIcon /> Buat Circle
           </Button>
           <Button variant="outline" size="md" onClick={() => setShowJoin(true)}>
             Gabung via Kode
@@ -155,23 +156,18 @@ export default function HomePage() {
         {circlesLoading ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-28 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800"
-              />
+              <div key={i} className="h-28 animate-pulse rounded-2xl bg-surface-2" />
             ))}
           </div>
         ) : !circles || circles.length === 0 ? (
           <div className="space-y-4">
             <EmptyState
-              emoji="🫗"
+              icon={<LeafIconBig />}
               title="Belum ada circle"
               desc="Buat circle baru untuk mulai nabung bareng, atau gabung lewat kode undangan dari temanmu."
             />
             <Card>
-              <p className="mb-3 text-sm font-bold text-slate-900 dark:text-slate-100">
-                🚀 Mulai dalam 3 langkah
-              </p>
+              <p className="mb-3 text-sm font-bold text-foreground">Mulai dalam 3 langkah</p>
               <ol className="space-y-2.5">
                 {[
                   ["Buat circle", "beri nama, deskripsi, dan nominal iuran."],
@@ -179,14 +175,12 @@ export default function HomePage() {
                   ["Catat iuran", "buat periode bulanan dan pantau statusnya."],
                 ].map(([t, d], i) => (
                   <li key={t} className="flex items-start gap-3">
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-strong text-xs font-bold text-white">
                       {i + 1}
                     </span>
                     <div className="text-sm">
-                      <span className="font-semibold text-slate-800 dark:text-slate-100">
-                        {t}
-                      </span>{" "}
-                      <span className="text-slate-500 dark:text-slate-400">{d}</span>
+                      <span className="font-semibold text-foreground">{t}</span>{" "}
+                      <span className="text-muted">{d}</span>
                     </div>
                   </li>
                 ))}
@@ -197,22 +191,20 @@ export default function HomePage() {
           <div className="grid gap-3 sm:grid-cols-2">
             {circles.map((c) => (
               <Link key={c.id} href={`/circles/${c.id}`} className="group">
-                <Card className="transition-shadow group-hover:shadow-md">
+                <Card className="transition-all group-hover:border-accent/40 group-hover:shadow-[0_10px_40px_-18px_rgba(16,185,129,0.4)]">
                   <div className="flex items-start justify-between gap-2">
-                    <h2 className="font-bold leading-snug text-slate-900 dark:text-slate-100">
-                      {c.name}
-                    </h2>
+                    <h2 className="font-bold leading-snug text-foreground">{c.name}</h2>
                     <Badge tone={c.role === "admin" ? "green" : "slate"}>
                       {c.role === "admin" ? "Bendahara" : "Anggota"}
                     </Badge>
                   </div>
                   {c.description && (
-                    <p className="mt-1 line-clamp-2 text-sm text-slate-400 dark:text-slate-400">
-                      {c.description}
-                    </p>
+                    <p className="mt-1 line-clamp-2 text-sm text-muted">{c.description}</p>
                   )}
-                  <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                    <span>👥 {c.memberCount} anggota</span>
+                  <div className="mt-3 flex items-center justify-between text-xs text-muted">
+                    <span className="inline-flex items-center gap-1">
+                      <UsersIcon /> {c.memberCount} anggota
+                    </span>
                     <span>Iuran {idr(c.default_amount)}/bln</span>
                   </div>
                 </Card>
@@ -248,7 +240,7 @@ export default function HomePage() {
             onChange={(e) => setCAmount(e.target.value)}
           />
           {createErr && (
-            <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600">
+            <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
               {createErr}
             </p>
           )}
@@ -260,7 +252,7 @@ export default function HomePage() {
           >
             Buat Circle
           </Button>
-          <p className="text-center text-xs text-slate-400">
+          <p className="text-center text-xs text-muted">
             Kamu otomatis jadi bendahara circle ini.
           </p>
         </div>
@@ -278,11 +270,11 @@ export default function HomePage() {
             maxLength={12}
             autoFocus
           />
-          <p className="text-center text-xs text-slate-400">
+          <p className="text-center text-xs text-muted">
             Minta kode ke bendahara circlemu.
           </p>
           {joinErr && (
-            <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600">
+            <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
               {joinErr}
             </p>
           )}
@@ -292,5 +284,41 @@ export default function HomePage() {
         </div>
       </Modal>
     </main>
+  );
+}
+
+function LeafIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+    </svg>
+  );
+}
+
+function LeafIconBig() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto h-10 w-10 text-muted">
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+function UsersIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
   );
 }

@@ -1,21 +1,55 @@
 @import "tailwindcss";
 
-/* Class-based dark mode: `.dark` on <html> toggles the variant. */
+/* ------------------------------------------------------------------
+   Teadrop — Ethereal Glass (Dark-first) design system
+   Compact OLED base with a single emerald accent, glassmorphism on
+   floating containers, and a fixed ambient nebula + film grain.
+   ------------------------------------------------------------------ */
+
+/* Dark is the default theme. Light mode is opt-in via `.light`. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #050505;
+  --surface: #0c0e11;
+  --surface-2: #12151a;
+  --foreground: #eceef1;
+  --muted: #8b919b;
+  --border: rgba(255, 255, 255, 0.08);
+
+  --accent: #34d399;          /* emerald-400, desaturated enough to blend */
+  --accent-strong: #10b981;   /* emerald-500 */
+  --accent-soft: rgba(52, 211, 153, 0.14);
+
+  --glow-1: rgba(16, 185, 129, 0.18);
+  --glow-2: rgba(45, 212, 191, 0.10);
 }
 
-.dark {
-  --background: #0b1220;
-  --foreground: #e2e8f0;
+.light {
+  --background: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #fbfbfc;
+  --foreground: #0f1722;
+  --muted: #5b6472;
+  --border: rgba(15, 23, 34, 0.10);
+
+  --accent: #0d9488;          /* teal-600 for legibility on light */
+  --accent-strong: #0f766e;
+  --accent-soft: rgba(13, 148, 136, 0.12);
+
+  --glow-1: rgba(13, 148, 136, 0.10);
+  --glow-2: rgba(45, 212, 191, 0.06);
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -23,25 +57,67 @@
 html {
   background: var(--background);
   color: var(--foreground);
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
 }
 
 body {
-  min-height: 100%;
-  background: var(--background);
+  min-height: 100dvh;
+  background:
+    radial-gradient(1200px 600px at 15% -10%, var(--glow-1), transparent 60%),
+    radial-gradient(1000px 500px at 100% 0%, var(--glow-2), transparent 55%),
+    var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI",
     sans-serif;
+  font-feature-settings: "ss01";
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Smooth theme transition for surfaces without overriding intentional
-   animation timings elsewhere. */
+/* Subtle film grain overlay (fixed, pointer-events-none) */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* Dark is default: no class. Light mode opt-in via `.light`. */
+:is(html:not(.light)) {
+  --_bg: var(--background);
+}
+html.light {
+  --_bg: var(--background);
+}
+
+/* Typographic refinements: money always in tabular figures */
+[idr],
+.font-numeric,
+tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Smooth theme + surface transitions */
 * {
-  transition-property: background-color, border-color;
+  transition-property: background-color, border-color, color;
   transition-duration: 200ms;
 }
 
-/* Toast entrance animation */
+/* Glass surface base (used by Cards and floating chrome) */
+.glass {
+  background: color-mix(in oklab, var(--surface) 78%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid var(--border);
+}
+
+/* -------- Animations -------- */
 @keyframes toast-in {
   from {
     opacity: 0;
@@ -53,7 +129,6 @@ body {
   }
 }
 
-/* Modal entrance animation */
 @keyframes modal-in {
   from {
     opacity: 0;
@@ -65,7 +140,54 @@ body {
   }
 }
 
-/* Utility to animate modals (applied by <Modal>) */
+/* Ambient drifting nebula blob (fixed, pointer-events-none) */
+@keyframes nebula-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(3%, -4%, 0) scale(1.08); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
 @utility animate-modal-in {
-  animation: modal-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modal-in 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility animate-toast-in {
+  animation: toast-in 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* -------- ReactBits: SpotlightCard -------- */
+/* Cursor-following radial glow on glass cards. Uses design tokens so the
+   base border/background match the Ethereal Glass theme. */
+.card-spotlight {
+  position: relative;
+  border-radius: 1.5rem;
+  border: 1px solid var(--border);
+  background-color: color-mix(in oklab, var(--surface) 82%, transparent);
+  padding: 1.5rem;
+  overflow: hidden;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  --spotlight-color: rgba(52, 211, 153, 0.10);
+}
+
+.card-spotlight::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at var(--mouse-x) var(--mouse-y),
+    var(--spotlight-color),
+    transparent 80%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.card-spotlight:hover::before,
+.card-spotlight:focus-within::before {
+  opacity: 0.7;
 }
