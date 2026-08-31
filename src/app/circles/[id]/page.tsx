@@ -12,6 +12,7 @@ import { useConfirm } from "@/components/confirm";
 import { DueDateReminder } from "@/components/due-date-reminder";
 import { BarChart, HorizontalBars } from "@/components/charts";
 import { DiaryFeed, DiaryComposer } from "@/components/diary";
+import { Gallery } from "@/components/gallery";
 import { exportBalanceHistoryCsv, exportContributionsCsv } from "@/lib/csv";
 import {
   useCircleDetail,
