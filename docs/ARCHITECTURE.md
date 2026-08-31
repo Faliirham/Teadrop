@@ -162,8 +162,13 @@ src/
 supabase/
 └── migrations/
     ├── 0001_init.sql             # skema inti + RLS
-    ├── 0002_demo_seed.sql        # seed demo
-    └── 0003_read_links.sql       # read_token + RPC get_circle_public/rotate_read_token
+    ├── 0002_circle_docs.sql      # moments, moment_photos, meetups, meetup_rsvps
+    ├── 0003_read_links.sql       # read_token + RPC get_circle_public/rotate_read_token
+    ├── config.toml               # config CLI lokal (supabase init)
+    └── .temp/                    # cache CLI (di-gitignore)
+
+scripts/
+└── seed-demo.ts                  # seed data contoh ke project live (dev-only)
 ```
 
 ## 6. Flow Utama
@@ -190,7 +195,10 @@ supabase/
 - **Supabase**: migrasi SQL via Supabase CLI (`npx supabase link` → `npm run db:push`),
   migrasi berurut dari `supabase/migrations/*.sql`. Sudah terapkan `0001_init`,
   `0002_circle_docs`, `0003_read_links` (read_token + RPC read-only) di project live.
-  Script `npm run db:seed` mengisi data contoh ke akun tertentu (dev-only).
+- **Seed (dev-only)**: `npm run db:seed -- --email <akun>` mengisi data contoh ke project
+  live — script `scripts/seed-demo.ts` memakai `SUPABASE_SERVICE_ROLE_KEY` (lokal, tidak
+  di-commit), idempotent (reset circle lama yang dibuat admin sebelum isi ulang), dan
+  otomatis membuat akun bila email belum terdaftar.
 - **Google OAuth**: atur provider Google di dashboard Supabase (client ID/secret + redirect URL
   `/auth/callback`) sebelum Google login berfungsi di live.
 - Branch `main` = production preview.

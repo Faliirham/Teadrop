@@ -39,6 +39,7 @@
 - [x] Perbaikan UX login: tombol "Coba Demo" yang stuck loading dihapus + session cache di-invalidate setelah login (dashboard langsung tampil data)
 - [x] Migrasi SQL `0001`/`0002`/`0003` dijalankan di Supabase via CLI (`supabase db push`) — read_token + RPC aktif
 - [x] Mode live aktif: env dipulihkan ke project live, dev server jalan terhadap database Supabase, login email/password `kamu@demo.id` terverifikasi
+- [x] Seed data contoh ke project live: `scripts/seed-demo.ts` (`npm run db:seed -- --email <email>`) — circle "Squad Teh Tarik" + 4 anggota + 2 periode + kontribusi + saldo + momen/foto + meetup/RSVP
 - [ ] Setup OAuth Google di dashboard Supabase (client ID/secret + redirect URL)
 
 ## Fase 5 — Native App (Expo)
