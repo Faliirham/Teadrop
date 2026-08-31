@@ -157,7 +157,9 @@ export async function listMyCircles(): Promise<MyCircle[]> {
   const sb = createClient();
   const { data, error } = await sb
     .from("circle_members")
-    .select("role, circle:circles(*)")
+    .select(
+      "role, circle:circles(id, name, description, invite_code, default_amount, created_by, deleted_at, created_at)"
+    )
     .eq("user_id", session.id);
   if (error) throw new Error(error.message);
 
@@ -165,19 +167,29 @@ export async function listMyCircles(): Promise<MyCircle[]> {
   const rows = ((data ?? []) as unknown as JoinedRow[]).filter(
     (r) => r.circle && !r.circle.deleted_at
   );
-  const counts = await Promise.all(
-    rows.map(async (r) => {
-      const { count } = await sb
-        .from("circle_members")
-        .select("*", { count: "exact", head: true })
-        .eq("circle_id", r.circle!.id);
-      return count ?? 0;
-    })
-  );
-  return rows.map((r, i) => ({
+
+  // Hitung total anggota per circle dalam SATU query (hindari N+1).
+  const circleIds = rows.map((r) => r.circle!.id);
+  let counts: Record<string, number> = {};
+  if (circleIds.length) {
+    const { data: memberships, error: e2 } = await sb
+      .from("circle_members")
+      .select("circle_id")
+      .in("circle_id", circleIds);
+    if (e2) throw new Error(e2.message);
+    counts = ((memberships ?? []) as { circle_id: string }[]).reduce(
+      (acc, m) => {
+        acc[m.circle_id] = (acc[m.circle_id] ?? 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
+  }
+
+  return rows.map((r) => ({
     ...r.circle!,
     role: r.role,
-    memberCount: counts[i],
+    memberCount: counts[r.circle!.id] ?? 0,
   }));
 }
 
@@ -220,7 +232,6 @@ export async function createCircle(input: {
     .insert({
       name: input.name.trim(),
       description: input.description?.trim() || null,
-      invite_code: makeInviteCode(),
       default_amount: input.defaultAmount,
       created_by: session.id,
     })
@@ -301,35 +312,44 @@ export async function getCircleDetail(id: string): Promise<CircleDetail> {
   const sb = createClient();
   const { data: circle, error: e1 } = await sb
     .from("circles")
-    .select("*")
+    .select(
+      "id, name, description, invite_code, default_amount, created_by, deleted_at, created_at"
+    )
     .eq("id", id)
     .maybeSingle();
   if (e1) throw new Error(e1.message);
   if (!circle || circle.deleted_at) throw new Error("Circle tidak ditemukan.");
 
-  const [{ data: members, error: e2 }, { data: periods, error: e3 }, { data: contributions, error: e4 }, { data: balances, error: e5 }] =
+  const [{ data: members, error: e2 }, { data: periods, error: e3 }, { data: balances, error: e5 }] =
     await Promise.all([
       sb.from("circle_members").select("*, profile:profiles(*)").eq("circle_id", id),
       sb.from("periods").select("*").eq("circle_id", id).order("created_at", { ascending: false }),
-      sb.from("contributions").select("*").order("paid_at", { ascending: false }),
       sb.from("balance_updates").select("*").eq("circle_id", id).order("created_at", { ascending: false }),
     ]);
   if (e2) throw new Error(e2.message);
   if (e3) throw new Error(e3.message);
-  if (e4) throw new Error(e4.message);
   if (e5) throw new Error(e5.message);
 
-  const periodIds = new Set(((periods ?? []) as Period[]).map((p) => p.id));
-  const relCons = ((contributions ?? []) as Contribution[]).filter((c) =>
-    periodIds.has(c.period_id)
-  );
+  const periodList = (periods ?? []) as Period[];
+  const periodIds = periodList.map((p) => p.id);
+
+  let contributions: Contribution[] = [];
+  if (periodIds.length) {
+    const { data: cons, error: e4 } = await sb
+      .from("contributions")
+      .select("*")
+      .in("period_id", periodIds)
+      .order("paid_at", { ascending: false });
+    if (e4) throw new Error(e4.message);
+    contributions = (cons ?? []) as Contribution[];
+  }
 
   const me = (members ?? []).find((m) => m.user_id === session.id);
   return {
     circle: circle as Circle,
     members: (members ?? []) as (CircleMember & { profile?: Profile })[],
-    periods: (periods ?? []) as Period[],
-    contributions: relCons,
+    periods: periodList,
+    contributions,
     balances: (balances ?? []) as BalanceUpdate[],
     latestBalance: ((balances ?? []) as BalanceUpdate[])[0] ?? null,
     myRole: (me?.role as Role) ?? null,
@@ -425,20 +445,18 @@ export async function getCirclePublic(token: string): Promise<PublicCircle | nul
   return (data ?? null) as PublicCircle | null;
 }
 
-/** Ambil read_token circle (dipakai tombol "Salin link lihat"). */
+/** Ambil read_token circle (dipakai tombol "Salin link lihat"). Hanya admin. */
 export async function getCircleReadToken(circleId: string): Promise<string> {
   if (isDemoMode) {
     // Demo tidak punya token terpisah — pakai id circle sebagai token.
     return circleId;
   }
   const sb = createClient();
-  const { data, error } = await sb
-    .from("circles")
-    .select("read_token")
-    .eq("id", circleId)
-    .maybeSingle();
+  const { data, error } = await sb.rpc("get_read_token", {
+    p_circle_id: circleId,
+  });
   if (error) throw new Error(error.message);
-  const token = (data as { read_token: string } | null)?.read_token;
+  const token = data as string;
   if (!token) throw new Error("Circle belum punya link lihat.");
   return token;
 }
