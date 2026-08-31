@@ -78,30 +78,40 @@ export async function signIn(email: string, password: string): Promise<void> {
 /** Kirim magic link (hanya mode live; di demo langsung login) */
 export async function sendMagicLink(
   email: string,
-  redirectBase: string
+  redirectBase: string,
+  next?: string
 ): Promise<void> {
   if (isDemoMode) {
     demoSignIn(email);
     return;
   }
   const sb = createClient();
+  const redirect =
+    `${redirectBase}/auth/callback` +
+    (next ? `?next=${encodeURIComponent(next)}` : "");
   const { error } = await sb.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: `${redirectBase}/auth/callback` },
+    options: { emailRedirectTo: redirect },
   });
   if (error) throw new Error(error.message);
 }
 
 /** Akses Google OAuth (hanya mode live; di demo langsung login). */
-export async function signInWithGoogle(redirectBase: string): Promise<void> {
+export async function signInWithGoogle(
+  redirectBase: string,
+  next?: string
+): Promise<void> {
   if (isDemoMode) {
     demoSignIn("kamu@demo.id");
     return;
   }
   const sb = createClient();
+  const redirect =
+    `${redirectBase}/auth/callback` +
+    (next ? `?next=${encodeURIComponent(next)}` : "");
   const { error } = await sb.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: `${redirectBase}/auth/callback` },
+    options: { redirectTo: redirect },
   });
   if (error) throw new Error(error.message);
 }
