@@ -11,7 +11,7 @@ Versi: 1.0 · Merujuk pada [PRD.md](./PRD.md)
 ## 2. Functional Requirements
 
 ### FR-1 Autentikasi
-- FR-1.1 Pengguna dapat mendaftar & login menggunakan email (magic link atau password).
+- FR-1.1 Pengguna dapat mendaftar & login menggunakan email (magic link atau password) atau Google OAuth.
 - FR-1.2 Session dikelola oleh Supabase Auth; refresh token otomatis.
 - FR-1.3 Profil dibuat otomatis (trigger) setelah signup: `profiles` terhubung ke `auth.users`.
 - FR-1.4 Logout menghapus session lokal dan server-side.
@@ -54,6 +54,18 @@ Versi: 1.0 · Merujuk pada [PRD.md](./PRD.md)
 - FR-7.2 Log transaksi per bulan dengan filter periode.
 - FR-7.3 Ekspor CSV riwayat pembayaran (per periode) dan audit trail saldo — diimplementasikan (`lib/csv.ts`).
 
+### FR-8 Link Lihat (Read-only)
+- FR-8.1 Setiap circle memiliki `read_token uuid` unik, di-generate otomatis (`gen_random_uuid()`).
+- FR-8.2 Admin dapat mengambil read_token (untuk "salin link") dan memanggil `rotate_read_token` untuk menggantinya.
+- FR-8.3 Siapa pun (termasuk anon, tanpa auth) dengan `read_token` valid dapat memanggil `get_circle_public` dan melihat snapshot keuangan read-only.
+- FR-8.4 `get_circle_public` hanya mengembalikan field aman (nama, deskripsi, saldo terakhir, periode aktif, nama+role anggota); TIDAK mengembalikan `invite_code`, `read_token`, kontribusi detail, ataupun data edit.
+- FR-8.5 Halaman `c/[token]` menampilkan snapshot; CTA mengarahkan login untuk mengelola.
+
+### FR-9 UI "Ethereal Glass" (Dark-first)
+- FR-9.1 Tema default gelap (base), mode terang opt-in lewat class `.light`.
+- FR-9.2 Seluruh halaman memakai token warna (`background/surface/foreground/muted/border/accent`), bukan class `slate`/`dark:`.
+- FR-9.3 Ikon SVG menggantikan emoji pada UI.
+
 ## 3. Non-Functional Requirements
 
 | ID | Kategori | Requirement |
@@ -71,3 +83,4 @@ Versi: 1.0 · Merujuk pada [PRD.md](./PRD.md)
 - Semua anggota circle memiliki akun (MVP tidak mendukung "anggota manual" tanpa akun).
 - Dana tersimpan di rekening/RDPU yang dicatat manual — aplikasi bukan sistem pembayaran.
 - Tidak ada integrasi API eksternal (keputusan: API NAB reksa dana publik dinilai tidak resmi/rentang berubah).
+- Link lihat read-only bersifat publik oleh desain; admin harus melakukan rotate jika link bocor.

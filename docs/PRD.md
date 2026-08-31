@@ -24,9 +24,9 @@
 
 ### Non-tujuan MVP
 - Sinkronisasi otomatis dengan bank/API eksternal (keputusan final: input manual).
-- Fitur diary/foto, kalender meetup (fase berikutnya).
 - Pembayaran online / payment gateway.
 - Multi-currency.
+- Read-only link tidak pernah membocorkan `invite_code` atau data edit (hanya snapshot keuangan).
 
 ## 3. Persona
 
@@ -56,7 +56,7 @@
 ## 5. Fitur MVP
 
 ### F1 — Autentikasi & Profil
-- Login: email magic-link atau email+password (via Supabase Auth).
+- Login: email magic-link, email+password, atau **Google OAuth** (via Supabase Auth).
 - Profil: nama tampilan, avatar opsional.
 
 ### F2 — Manajemen Circle
@@ -83,6 +83,20 @@
 - Halaman riwayat: daftar transaksi per bulan + ringkasan.
 - Riwayat perubahan saldo (audit trail): siapa, kapan, dari berapa ke berapa, catatan.
 
+### F7 — Link Lihat (Read-only, Fase 4 / Internal Circle)
+- Setiap circle punya `read_token` unik (uuid) yang di-generate otomatis saat dibuat.
+- Admin dapat "menyalin link lihat" dan "memutar ulang (rotasi) link".
+- Siapa pun dengan link bisa membuka halaman `c/[token]` tanpa login dan melihat snapshot:
+  nama, deskripsi, saldo terbaru, periode aktif + total terkumpul, dan daftar anggota.
+- RPC `get_circle_public` (security-definer) TIDAK pernah mengembalikan `invite_code`,
+  data kontribusi detail, ataupun data yang bisa diedit.
+- RPC `rotate_read_token` khusus admin untuk mencabut akses link lama.
+
+### F8 — Redesign UI "Ethereal Glass" (Dark-first)
+- Skema warna default **gelap** (OLED `#050505`) dengan aksen emerald tunggal; mode terang opt-in.
+- Glassmorphism pada kartu/container mengambang, nebula ambient + film grain di latar.
+- Primitif UI (`ui.tsx`) & ikon SVG menggantikan emoji dan class `slate`/`dark:` lama.
+
 ## 6. Metrik Keberhasilan (MVP)
 1. Waktu bendahara menjawab "sudah bayar belum?" turun dari chat back-and-forth menjadi < 10 detik (anggota cek mandiri).
 2. Latensi update realtime < 2 detik sejak pencatatan.
@@ -100,11 +114,16 @@
 
 ### Fase 3 — Fitur Dokumentasi Circle (selesai)
 - **Diary kegiatan**: poster moment dengan foto (implementasi di `src/components/diary.tsx`, API di `src/lib/api.ts`, seed di `src/lib/demo/store.ts`)
-- **Galeri foto**: grid gallery dengan lightbox viewer (`src/components/gallery.tsx`)
+- **Galeri foto**: grid gallery dengan lightbox viewer (`src/components/gallery.tsx`), kini terhubung ke tab Dokumentasi sebagai satu grid foto seluruh momen
 - **Kalender meetup**: daftar acara dengan RSVP (`src/lib/api.ts:createMeetup/rsvpMeetup`, `use-teadrop.ts`)
-- **Statistik kebersamaan**: grafik aktivitas per anggota & per periode (sudah ada di tab Statistik, perlu diagram per tahun)
+- **Statistik kebersamaan**: grafik aktivitas per anggota & per periode (terbuka: diagram per tahun)
 
-### Fase 4 — Native App (Expo)
+### Fase 4 — Internal Circle MVP (selesai)
+- **Google OAuth**: tombol "Masuk dengan Google" di halaman login (`lib/api.ts:signInWithGoogle`)
+- **Link lihat read-only**: `read_token` per circle, halaman publik `c/[token]`, RPC `get_circle_public` + `rotate_read_token` (migrasi `supabase/migrations/0003_read_links.sql`)
+- **Redesign UI "Ethereal Glass"**: dark-first, token warna, ReactBits SpotlightCard (dikopi manual, tanpa gsap/three)
+
+### Fase 5 — Native App (Expo)
 - Porting UI ke Expo (React Native) — reuse pola data & logika
 - Notifikasi native
 - Share ke grup WhatsApp (deep link invite)

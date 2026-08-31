@@ -6,7 +6,8 @@
 |---|---|
 | Framework | Next.js 16 (App Router, src dir) + React 19 |
 | Bahasa | TypeScript |
-| Styling | Tailwind CSS v4 + komponen custom (`components/ui.tsx`) |
+| Styling | Tailwind CSS v4 + token desain dark-first (`globals.css`) + primitives (`components/ui.tsx`) |
+| Komponen efek | ReactBits SpotlightCard (dikopi manual, tanpa gsap/three) |
 | Data fetching | TanStack Query v5 + supabase-js v2 |
 | State klien | TanStack Query + React state (tanpa library ekstra) |
 | Database/Auth/Realtime | Supabase (Postgres, GoTrue, Realtime) |
@@ -17,6 +18,9 @@
 > **Mode Demo:** ketika `NEXT_PUBLIC_SUPABASE_URL` kosong/placeholder, aplikasi jatuh ke mode
 > demo memakai store localStorage (`lib/demo/store.ts`) sehingga seluruh fitur bisa dicoba
 > tanpa backend. Semua data layer (`lib/api.ts`) bercabang antara demo & live.
+
+> **Key Env:** `lib/env.ts:supabaseKey()` memprioritaskan `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+> (format kunci `sb_publishable_...`) dengan fallback `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 
 ## 2. Diagram Arsitektur
 
@@ -62,6 +66,7 @@ erDiagram
         text name
         text description
         text invite_code UK "regenerable"
+        uuid read_token UK "read-only share"
         numeric default_amount
         uuid created_by FK
         timestamptz deleted_at "soft delete"
@@ -115,6 +120,9 @@ erDiagram
 | D3 | Soft delete untuk circle | Mencegah hilangnya riwayat finansial karena salah klik |
 | D4 | RLS berbasis fungsi `is_circle_member(circle_id)` | Satu policy reusable, mudah diaudit |
 | D5 | Realtime via channel per-circle (`circle:<id>`) | Hemat bandwidth, hanya data circle aktif |
+| D6 | Read-only share via `read_token` publik + RPC `get_circle_public` | Bisa dibuka tanpa login; tak pernah membocorkan `invite_code`/data edit |
+| D7 | ReactBits komponen efek dikopi manual (non-gsap) | Hindari dependensi berat (gsap/three); hanya komponen ringan yang relevan |
+| D8 | Token warna dark-first (`--background/--foreground/--accent`) | Tema konsisten, mode terang opt-in via `.light` |
 
 ## 5. Struktur Folder
 
@@ -122,30 +130,40 @@ erDiagram
 src/
 ├── app/                          # routes (App Router)
 │   ├── page.tsx                  # landing (guest) → dashboard (login/demo)
-│   ├── login/page.tsx            # autentikasi
-│   ├── circles/[id]/page.tsx     # sidebar circle dengan tab
-│   ├── auth/callback/route.ts    # penukaran magic-link code
+│   ├── login/page.tsx            # autentikasi (Google + magic link)
+│   ├── circles/[id]/page.tsx     # sidebar circle dengan tab (ringkasan/anggota/periode/riwayat/statistik/dokumentasi)
+│   ├── c/[token]/page.tsx        # halaman lihat read-only (tanpa login) via read_token
+│   ├── auth/callback/route.ts    # penukaran auth code (google/magic link)
 │   ├── manifest.ts               # Web App Manifest (PWA)
-│   ├── globals.css               # Tailwind v4 + tema
+│   ├── globals.css               # Tailwind v4 + token dark-first + spotlight CSS
 │   └── layout.tsx
 ├── components/
-│   ├── ui.tsx                    # primitives (Button/Card/Input/Badge/Modal/EmptyState)
-│   ├── theme.tsx                 # ThemeProvider + boot script
+│   ├── ui.tsx                    # primitives (Button/Card/Input/Badge/Modal/EmptyState) — token
+│   ├── theme.tsx                 # ThemeProvider + boot script (dark-first)
 │   ├── theme-toggle.tsx          # toggle mode gelap/terang
-│   ├── toast.tsx                 # notifikasi toast
-│   ├── confirm.tsx               # dialog konfirmasi
+│   ├── toast.tsx / confirm.tsx   # notifikasi & dialog konfirmasi (token)
 │   ├── due-date-reminder.tsx     # pengingat jatuh tempo
-│   ├── charts.tsx                # komponen chart SVG
+│   ├── charts.tsx                # komponen chart SVG (token)
+│   ├── gallery.tsx               # galeri foto + lightbox
+│   ├── diary.tsx                 # diary kegiatan (moment + foto)
 │   ├── landing.tsx               # halaman publik
 │   ├── pwa-installer.tsx         # register SW + install prompt
+│   ├── reactbits/SpotlightCard.tsx # ReactBits (dikopi manual, no-gsap)
 │   └── providers.tsx             # QueryClient + Theme + Toast + Confirm
 ├── hooks/use-teadrop.ts          # query & realtime hooks
 ├── lib/
-│   ├── api.ts                    # data layer (demo ↔ live)
+│   ├── api.ts                    # data layer (demo ↔ live) + Google OAuth + read-token RPC
+│   ├── env.ts                    # resolusi key (publishable → anon)
 │   ├── csv.ts                    # ekspor CSV
 │   ├── demo/store.ts             # mock DB localStorage (mode demo)
 │   └── supabase/                 # client, server client, helpers
 └── proxy.ts                      # proteksi route auth (pengganti middleware)
+
+supabase/
+└── migrations/
+    ├── 0001_init.sql             # skema inti + RLS
+    ├── 0002_demo_seed.sql        # seed demo
+    └── 0003_read_links.sql       # read_token + RPC get_circle_public/rotate_read_token
 ```
 
 ## 6. Flow Utama
@@ -160,8 +178,17 @@ src/
 2. Server membaca saldo terakhir → insert baris `balance_updates` baru.
 3. Realtime broadcast → dashboard semua anggota ter-update otomatis.
 
+### Link Lihat (Read-only)
+1. Admin menyalin link dari tab Anggota (mengambil `read_token` via RPC/list).
+2. Penerima membuka `c/[token]` tanpa login → RPC `get_circle_public` mengembalikan snapshot aman.
+3. Jika link bocor, admin memanggil `rotate_read_token` → `read_token` lama tak valid lagi.
+
 ## 7. Deployment
 
-- **Vercel**: build `next build`; env `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- **Vercel**: build `next build`; env `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+  (`NEXT_PUBLIC_SUPABASE_ANON_KEY` sebagai fallback).
 - **Supabase**: migrasi SQL via `supabase/migrations/*.sql` (dijalankan lewat Supabase CLI / SQL editor).
+  Termasuk `0003_read_links.sql` (read_token + RPC read-only).
+- **Google OAuth**: atur provider Google di dashboard Supabase (client ID/secret + redirect URL
+  `/auth/callback`) sebelum Google login berfungsi di live.
 - Branch `main` = production preview.
