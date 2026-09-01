@@ -939,6 +939,66 @@ export async function deleteMeetup(meetupId: string): Promise<void> {
 }
 
 // ============================================================
+// PROFILE
+// ============================================================
+
+export async function updateProfile(input: {
+  fullName: string;
+  avatarFile?: File | null;
+}): Promise<void> {
+  const session = await getSessionUser();
+  if (!session) throw new Error("Belum login");
+
+  let avatarUrl: string | null = null;
+
+  if (isDemoMode) {
+    const db = loadDB();
+    const profile = db.profiles.find((p) => p.id === session.id);
+    if (profile) {
+      profile.full_name = input.fullName.trim() || null;
+      if (input.avatarFile) {
+        const { compressImage } = await import("./image");
+        avatarUrl = await compressImage(input.avatarFile);
+        profile.avatar_url = avatarUrl;
+      }
+      saveDB(db);
+    }
+    return;
+  }
+
+  const sb = createClient();
+
+  if (input.avatarFile) {
+    const ext = input.avatarFile.type === "image/png" ? "png" : "jpg";
+    const path = `avatars/${session.id}/${Date.now()}.${ext}`;
+    const dataUrl = await (await import("./image")).compressImage(input.avatarFile);
+    const blob = await (await fetch(dataUrl)).blob();
+
+    const { error: uploadErr } = await sb.storage
+      .from("circle-photos")
+      .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+    if (uploadErr) throw new Error(uploadErr.message);
+
+    const { data: urlData } = sb.storage.from("circle-photos").getPublicUrl(path);
+    avatarUrl = urlData.publicUrl;
+  }
+
+  const update: Record<string, unknown> = {
+    full_name: input.fullName.trim() || null,
+  };
+  if (avatarUrl) update.avatar_url = avatarUrl;
+
+  const { error } = await sb
+    .from("profiles")
+    .update(update)
+    .eq("id", session.id);
+  if (error) throw new Error(error.message);
+
+  // Also update auth metadata so session reflects new name
+  await sb.auth.updateUser({ data: { full_name: input.fullName.trim() } });
+}
+
+// ============================================================
 // BALANCE (manual, immutable audit trail)
 // ============================================================
 

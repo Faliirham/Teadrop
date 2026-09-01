@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { Badge, Button, Card, EmptyState, Input, Modal, idr } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ProfileEditModal } from "@/components/profile-edit";
 import { useToast } from "@/components/toast";
 import { Landing } from "@/components/landing";
 import { useDemoSync, useMyCircles, useSession } from "@/hooks/use-teadrop";
@@ -48,6 +49,7 @@ export default function HomePage() {
   // Modals + dropdown open state
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -118,6 +120,12 @@ export default function HomePage() {
     await qc.invalidateQueries();
     router.replace("/login");
     router.refresh();
+  };
+
+  const handleProfileSave = async (fullName: string, avatarFile?: File | null) => {
+    await api.updateProfile({ fullName, avatarFile });
+    await qc.invalidateQueries({ queryKey: ["session"] });
+    toast.success("Profil diperbarui");
   };
 
   if (sessionLoading) {
@@ -193,6 +201,17 @@ export default function HomePage() {
                 )}
               </div>
             )}
+            <button
+              type="button"
+              onClick={() => setShowProfile(true)}
+              className="flex items-center gap-2 rounded-xl border border-border bg-surface/60 px-3 py-1.5 text-sm font-semibold text-foreground backdrop-blur-sm transition hover:bg-surface-2"
+              title="Edit profil"
+            >
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-accent-soft text-xs font-bold text-accent">
+                {(user?.name ?? "U").trim().charAt(0).toUpperCase()}
+              </span>
+              <span className="hidden sm:inline max-w-[100px] truncate">{user?.name}</span>
+            </button>
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               Keluar
@@ -405,6 +424,14 @@ export default function HomePage() {
           </Button>
         </div>
       </Modal>
+
+      <ProfileEditModal
+        open={showProfile}
+        currentName={user?.name ?? ""}
+        currentEmail={user?.email ?? ""}
+        onClose={() => setShowProfile(false)}
+        onSave={handleProfileSave}
+      />
     </main>
   );
 }
