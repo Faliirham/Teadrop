@@ -37,7 +37,7 @@ export function Gallery({ photos, onClose }: GalleryProps) {
     <>
       <GridGallery photos={photos} onImageClick={handleOpen} />
 
-      <Modal open={open} onClose={onClose} title="Foto Momen">
+      <Modal open={open} onClose={() => { setOpen(false); onClose(); }} title="Foto Momen">
         <div className="flex flex-col">
           <div className="grid h-72 place-items-center overflow-hidden">
             {images[active] && (
@@ -106,7 +106,7 @@ function GridGallery({
       {photos.length > MAX_GRID && (
         <button
           type="button"
-          onClick={() => onImageClick(MAX_GRID - 1)}
+          onClick={() => onImageClick(MAX_GRID)}
           className="grid aspect-square place-items-center rounded-2xl border border-dashed border-border bg-surface/60 text-sm font-semibold text-muted"
         >
           +{photos.length - MAX_GRID} foto

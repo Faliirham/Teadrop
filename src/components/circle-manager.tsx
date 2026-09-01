@@ -942,7 +942,7 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
               <p className="mb-3 text-sm font-semibold text-foreground">
                 Galeri ({allPhotos.length})
               </p>
-              <Gallery photos={allPhotos} onClose={() => setShowPay(false)} />
+              <Gallery photos={allPhotos} onClose={() => {}} />
             </SpotlightCard>
           )}
 
