@@ -111,6 +111,15 @@ function Avatar({ name }: { name?: string | null }) {
   );
 }
 
+function SettingsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
+
 // ---------- page ----------
 
 type Tab = "ringkasan" | "anggota" | "periode" | "riwayat" | "statistik" | "dokumentasi";
@@ -141,6 +150,7 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
   const [payPeriod, setPayPeriod] = useState<Period | null>(null);
   const [payMember, setPayMember] = useState<string>("");
   const [showNewPeriod, setShowNewPeriod] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["circle", id] });
@@ -329,10 +339,69 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
           <div className="h-40 animate-pulse rounded-2xl bg-surface-2" />
           <div className="h-24 animate-pulse rounded-2xl bg-surface/70" />
           <div className="h-24 animate-pulse rounded-2xl bg-surface/70" />
+      </div>
+    </Modal>
+  );
+}
+
+function CircleSettingsModal({
+  open,
+  currentName,
+  currentDescription,
+  onClose,
+  onSave,
+}: {
+  open: boolean;
+  currentName: string;
+  currentDescription: string;
+  onClose: () => void;
+  onSave: (name: string, description: string) => Promise<void>;
+}) {
+  const [name, setName] = useState(currentName);
+  const [description, setDescription] = useState(currentDescription);
+  const [busy, setBusy] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setBusy(true);
+    try {
+      await onSave(name.trim(), description.trim());
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="Pengaturan Circle">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Nama circle"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={60}
+          autoFocus
+        />
+        <Input
+          label="Deskripsi"
+          placeholder="Tentang circle ini..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          maxLength={200}
+        />
+        <div className="flex gap-3 pt-2">
+          <Button type="button" variant="ghost" onClick={onClose} className="flex-1">
+            Batal
+          </Button>
+          <Button type="submit" loading={busy} className="flex-1">
+            Simpan
+          </Button>
         </div>
-      </Shell>
-    );
-  }
+      </form>
+    </Modal>
+  );
+}
 
   const bal = data.latestBalance;
   const delta = bal ? Number(bal.new_amount) - Number(bal.previous_amount) : 0;
@@ -376,6 +445,16 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
         <h1 className="min-w-0 flex-1 truncate text-lg font-extrabold text-foreground">
           {data.circle.name}
         </h1>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => setShowSettings(true)}
+            className="grid h-9 w-9 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-foreground"
+            title="Pengaturan circle"
+          >
+            <SettingsIcon />
+          </button>
+        )}
         <ThemeToggle />
       </div>
 
@@ -1045,6 +1124,19 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
         onDone={async () => {
           setShowNewPeriod(false);
           toast.success("Periode iuran dibuat");
+          await refresh();
+        }}
+      />
+
+      <CircleSettingsModal
+        open={showSettings}
+        currentName={data.circle.name}
+        currentDescription={data.circle.description ?? ""}
+        onClose={() => setShowSettings(false)}
+        onSave={async (name, description) => {
+          await api.updateCircle(id, { name, description });
+          setShowSettings(false);
+          toast.success("Pengaturan circle diperbarui");
           await refresh();
         }}
       />

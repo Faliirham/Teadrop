@@ -251,6 +251,34 @@ export async function createCircle(input: {
   return (data as { id: string }).id;
 }
 
+export async function updateCircle(
+  circleId: string,
+  input: { name: string; description?: string }
+): Promise<void> {
+  const session = await getSessionUser();
+  if (!session) throw new Error("Belum login");
+
+  if (isDemoMode) {
+    const db = loadDB();
+    const circle = db.circles.find((c) => c.id === circleId);
+    if (!circle) throw new Error("Circle tidak ditemukan");
+    circle.name = input.name.trim();
+    circle.description = input.description?.trim() || null;
+    saveDB(db);
+    return;
+  }
+
+  const sb = createClient();
+  const { error } = await sb
+    .from("circles")
+    .update({
+      name: input.name.trim(),
+      description: input.description?.trim() || null,
+    })
+    .eq("id", circleId);
+  if (error) throw new Error(error.message);
+}
+
 export async function joinCircle(codeRaw: string): Promise<string> {
   const code = codeRaw.trim().toUpperCase();
 
