@@ -41,7 +41,7 @@ export function Landing() {
         <nav className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent-soft text-accent">
-              <LeafIcon />
+              <DropLogo />
             </span>
             <span className="text-lg font-extrabold tracking-tight text-foreground">
               Teadrop
@@ -134,10 +134,10 @@ export function Landing() {
   );
 }
 
-function LeafIcon() {
+function DropLogo() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-      <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+      <path d="M12 2.7S5.5 9.4 5.5 14.4a6.5 6.5 0 0 0 13 0C18.5 9.4 12 2.7 12 2.7Z" />
     </svg>
   );
 }

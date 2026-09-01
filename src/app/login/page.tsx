@@ -101,7 +101,7 @@ function LoginForm() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-accent">
-            <LeafLogo />
+            <DropLogo />
           </div>
           <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-foreground">
             Teadrop
@@ -204,10 +204,10 @@ function Divider({ label }: { label: string }) {
   );
 }
 
-function LeafLogo() {
+function DropLogo() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">
-      <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7">
+      <path d="M12 2.7S5.5 9.4 5.5 14.4a6.5 6.5 0 0 0 13 0C18.5 9.4 12 2.7 12 2.7Z" />
     </svg>
   );
 }
