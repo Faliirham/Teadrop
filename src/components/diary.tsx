@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Button, Card, EmptyState } from "@/components/ui";
+import { Button, Card, EmptyState, Textarea } from "@/components/ui";
 import type { MomentWithPhotos } from "@/types/db";
 
 function fmtDateTime(iso: string): string {
@@ -69,13 +69,13 @@ export function DiaryComposer({
 
   return (
     <Card className="p-4">
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
+      <Textarea
+        label="Momen"
         placeholder="Ceritakan momen circle kalian…"
         maxLength={500}
         rows={2}
-        className="w-full resize-none rounded-xl border border-border bg-transparent px-3 py-2.5 text-sm text-foreground outline-none transition placeholder:text-muted/50 focus:border-accent focus:ring-2 focus:ring-accent-soft"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
       />
 
       {previews.length > 0 && (

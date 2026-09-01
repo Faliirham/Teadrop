@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Badge, Card, idr } from "@/components/ui";
+import { Badge, Card, Skeleton, idr } from "@/components/ui";
 import { SpotlightCard } from "@/components/reactbits/SpotlightCard";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useSession } from "@/hooks/use-teadrop";
@@ -49,8 +49,8 @@ export default function CirclePublicPage() {
 
         {isLoading && (
           <div className="space-y-4">
-            <div className="h-40 animate-pulse rounded-2xl bg-surface-2" />
-            <div className="h-24 animate-pulse rounded-2xl bg-surface/70" />
+            <Skeleton className="h-40" />
+            <Skeleton className="h-24" />
           </div>
         )}
 

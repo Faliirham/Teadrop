@@ -1,6 +1,6 @@
 "use client";
 
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes, SelectHTMLAttributes } from "react";
 
 type Variant = "primary" | "outline" | "danger" | "ghost";
 type Size = "sm" | "md" | "lg";
@@ -179,4 +179,77 @@ export function EmptyState({
 export function idr(n: number): string {
   const sign = n < 0 ? "-" : "";
   return `${sign}Rp${Math.abs(Math.round(n)).toLocaleString("id-ID")}`;
+}
+
+export function Textarea({
+  label,
+  hint,
+  error,
+  className = "",
+  ...props
+}: TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  label?: string;
+  hint?: string;
+  error?: string | null;
+}) {
+  return (
+    <label className="block">
+      {label && (
+        <span className="mb-1.5 block text-sm font-medium text-muted">
+          {label}
+        </span>
+      )}
+      <textarea
+        {...props}
+        className={`w-full rounded-xl border bg-surface/60 px-3 py-2.5 text-sm text-foreground outline-none transition placeholder:text-muted/50 focus:border-accent focus:ring-2 focus:ring-accent-soft ${
+          error ? "border-rose-400" : "border-border"
+        } ${className}`}
+      />
+      {hint && !error && (
+        <span className="mt-1 block text-xs text-muted">{hint}</span>
+      )}
+      {error && <span className="mt-1 block text-xs text-rose-400">{error}</span>}
+    </label>
+  );
+}
+
+export function Select({
+  label,
+  hint,
+  error,
+  className = "",
+  children,
+  ...props
+}: SelectHTMLAttributes<HTMLSelectElement> & {
+  label?: string;
+  hint?: string;
+  error?: string | null;
+}) {
+  return (
+    <label className="block">
+      {label && (
+        <span className="mb-1.5 block text-sm font-medium text-muted">
+          {label}
+        </span>
+      )}
+      <select
+        {...props}
+        className={`w-full cursor-pointer rounded-xl border bg-surface/60 px-4 py-2.5 text-foreground outline-none transition focus:border-accent ${
+          error ? "border-rose-400" : "border-border"
+        } ${className}`}
+      >
+        {children}
+      </select>
+      {hint && !error && (
+        <span className="mt-1 block text-xs text-muted">{hint}</span>
+      )}
+      {error && <span className="mt-1 block text-xs text-rose-400">{error}</span>}
+    </label>
+  );
+}
+
+export function Skeleton({ className = "" }: { className?: string }) {
+  return (
+    <div className={`animate-pulse rounded-2xl bg-surface-2 ${className}`} />
+  );
 }

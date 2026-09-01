@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { Badge, Button, Card, EmptyState, Input, Modal, idr } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Input, Modal, Select, Skeleton, idr } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useToast } from "@/components/toast";
 import { useConfirm } from "@/components/confirm";
@@ -336,13 +336,13 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
     return (
       <Shell>
         <div className="space-y-4">
-          <div className="h-40 animate-pulse rounded-2xl bg-surface-2" />
-          <div className="h-24 animate-pulse rounded-2xl bg-surface/70" />
-          <div className="h-24 animate-pulse rounded-2xl bg-surface/70" />
-      </div>
-    </Modal>
-  );
-}
+          <Skeleton className="h-40" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+        </div>
+      </Shell>
+    );
+  }
 
 function CircleSettingsModal({
   open,
@@ -1318,19 +1318,16 @@ function RecordPaymentModal({
           onChange={(e) => setAmount(e.target.value)}
         />
 
-        <label className="block">
-          <span className="mb-1.5 block text-sm font-medium text-muted">Metode</span>
-          <select
-            value={method}
-            onChange={(e) => setMethod(e.target.value as Contribution["method"])}
-            className="w-full cursor-pointer rounded-xl border border-border bg-surface/60 px-4 py-2.5 text-foreground outline-none transition focus:border-accent"
-          >
-            <option value="transfer">Transfer</option>
-            <option value="qris">QRIS</option>
-            <option value="cash">Cash</option>
-            <option value="other">Lainnya</option>
-          </select>
-        </label>
+        <Select
+          label="Metode"
+          value={method}
+          onChange={(e) => setMethod(e.target.value as Contribution["method"])}
+        >
+          <option value="transfer">Transfer</option>
+          <option value="qris">QRIS</option>
+          <option value="cash">Cash</option>
+          <option value="other">Lainnya</option>
+        </Select>
 
         <Input
           label="Catatan (opsional)"

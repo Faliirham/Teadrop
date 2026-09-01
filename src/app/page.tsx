@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { Badge, Button, Card, EmptyState, Input, Modal, idr } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Input, Modal, Skeleton, idr } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ProfileEditModal } from "@/components/profile-edit";
 import { useToast } from "@/components/toast";
@@ -230,7 +230,7 @@ export default function HomePage() {
         {circlesLoading ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {[1, 2].map((i) => (
-              <div key={i} className="h-28 animate-pulse rounded-2xl bg-surface-2" />
+              <Skeleton key={i} className="h-28" />
             ))}
           </div>
         ) : !circles || circles.length === 0 ? (
