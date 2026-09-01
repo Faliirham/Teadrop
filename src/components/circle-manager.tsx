@@ -13,12 +13,14 @@ import { DueDateReminder } from "@/components/due-date-reminder";
 import { BarChart, HorizontalBars } from "@/components/charts";
 import { DiaryFeed, DiaryComposer } from "@/components/diary";
 import { Gallery } from "@/components/gallery";
+import { MeetupCalendar } from "@/components/meetup-calendar";
 import { SpotlightCard } from "@/components/reactbits/SpotlightCard";
 import { exportBalanceHistoryCsv, exportContributionsCsv } from "@/lib/csv";
 import {
   useCircleDetail,
   useCircleRealtime,
   useDemoSync,
+  useMeetups,
   useMoments,
   useSession,
 } from "@/hooks/use-teadrop";
@@ -127,6 +129,7 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
   const { data: user } = useSession();
   const { data, isLoading, error } = useCircleDetail(id, true);
   const { data: moments = [] } = useMoments(id, true);
+  const { data: meetups = [] } = useMeetups(id, true);
 
   const [tab, setTab] = useState<Tab>("ringkasan");
   const [copied, setCopied] = useState(false);
@@ -269,6 +272,36 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
   const doDeleteMoment = async (momentId: string) => {
     await api.deleteMoment(momentId);
     toast.info("Momen dihapus");
+    refresh();
+  };
+
+  const doCreateMeetup = async (input: {
+    title: string;
+    description: string;
+    location: string;
+    startAt: string;
+  }) => {
+    await api.createMeetup({ circleId: id, ...input });
+    toast.success("Acara dibuat");
+    refresh();
+  };
+
+  const doRsvpMeetup = async (meetupId: string, status: "going" | "maybe" | "declined") => {
+    if (!user) return;
+    await api.rsvpMeetup(meetupId, user.id, status);
+    refresh();
+  };
+
+  const doDeleteMeetup = async (meetupId: string) => {
+    const ok = await confirm({
+      title: "Hapus acara ini?",
+      message: "Data RSVP juga akan dihapus.",
+      danger: true,
+      confirmLabel: "Hapus",
+    });
+    if (!ok) return;
+    await api.deleteMeetup(meetupId);
+    toast.info("Acara dihapus");
     refresh();
   };
 
@@ -945,6 +978,17 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
               <Gallery photos={allPhotos} onClose={() => {}} />
             </SpotlightCard>
           )}
+
+          <SpotlightCard className="p-4">
+            <MeetupCalendar
+              meetups={meetups}
+              currentUserId={user?.id ?? ""}
+              isAdmin={isAdmin}
+              onCreate={doCreateMeetup}
+              onRsvp={doRsvpMeetup}
+              onDelete={doDeleteMeetup}
+            />
+          </SpotlightCard>
 
           <DiaryFeed
             moments={moments}
