@@ -124,6 +124,78 @@ export default function CirclePublicPage() {
               </ul>
             </Card>
 
+            {/* Meetup mendatang */}
+            {data.meetups.length > 0 && (
+              <Card>
+                <h3 className="mb-3 font-bold text-foreground">
+                  Meetup ({data.meetups.length})
+                </h3>
+                <ul className="space-y-3">
+                  {data.meetups.map((m) => (
+                    <li key={m.id} className="rounded-xl border border-border bg-surface/40 p-3">
+                      <p className="font-semibold text-foreground">{m.title}</p>
+                      <p className="mt-0.5 text-xs text-muted">
+                        {new Date(m.start_at).toLocaleDateString("id-ID", {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                        {m.location && ` · ${m.location}`}
+                      </p>
+                      <div className="mt-2 flex items-center gap-3 text-xs text-muted">
+                        {m.rsvp_going > 0 && (
+                          <span className="inline-flex items-center gap-1">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                            {m.rsvp_going} hadir
+                          </span>
+                        )}
+                        {m.rsvp_maybe > 0 && (
+                          <span className="inline-flex items-center gap-1">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                            {m.rsvp_maybe} mungkin
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {/* Momen terbaru */}
+            {data.moments.length > 0 && (
+              <Card>
+                <h3 className="mb-3 font-bold text-foreground">
+                  Momen ({data.moments.length})
+                </h3>
+                <ul className="space-y-3">
+                  {data.moments.map((m) => (
+                    <li key={m.id} className="rounded-xl border border-border bg-surface/40 p-3">
+                      <p className="text-sm text-foreground">{m.content}</p>
+                      {m.photos.length > 0 && (
+                        <div className="mt-2 flex gap-2 overflow-x-auto">
+                          {m.photos.map((p, i) => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              key={i}
+                              src={p.url}
+                              alt=""
+                              className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                            />
+                          ))}
+                        </div>
+                      )}
+                      <p className="mt-1.5 text-xs text-muted">
+                        {m.author_name ?? "Anggota"} · {fmtDate(m.created_at)}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
             {/* CTA */}
             <Link
               href="/login"

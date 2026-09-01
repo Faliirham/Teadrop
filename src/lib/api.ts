@@ -431,6 +431,23 @@ export interface PublicCircle {
     amount_per_member: number;
     collected: number;
   } | null;
+  moments: {
+    id: string;
+    content: string;
+    created_at: string;
+    author_name: string | null;
+    photos: { url: string }[];
+  }[];
+  meetups: {
+    id: string;
+    title: string;
+    location: string | null;
+    start_at: string;
+    created_by_name: string | null;
+    rsvp_going: number;
+    rsvp_maybe: number;
+    rsvp_declined: number;
+  }[];
 }
 
 /** Membaca snapshot circle tanpa login (via token di URL). Anon aman. */
@@ -474,6 +491,34 @@ export async function getCirclePublic(token: string): Promise<PublicCircle | nul
               .reduce((s, c) => s + Number(c.amount), 0),
           }
         : null,
+      moments: db.moments
+        .filter((m) => m.circle_id === circle.id)
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+        .slice(0, 10)
+        .map((m) => ({
+          id: m.id,
+          content: m.content,
+          created_at: m.created_at,
+          author_name: db.profiles.find((p) => p.id === m.author_id)?.full_name ?? null,
+          photos: db.moment_photos.filter((ph) => ph.moment_id === m.id).map((ph) => ({ url: ph.url })),
+        })),
+      meetups: db.meetups
+        .filter((m) => m.circle_id === circle.id)
+        .sort((a, b) => (a.start_at < b.start_at ? -1 : 1))
+        .slice(0, 5)
+        .map((m) => {
+          const rsvps = db.meetup_rsvps.filter((r) => r.meetup_id === m.id);
+          return {
+            id: m.id,
+            title: m.title,
+            location: m.location,
+            start_at: m.start_at,
+            created_by_name: db.profiles.find((p) => p.id === m.created_by)?.full_name ?? null,
+            rsvp_going: rsvps.filter((r) => r.status === "going").length,
+            rsvp_maybe: rsvps.filter((r) => r.status === "maybe").length,
+            rsvp_declined: rsvps.filter((r) => r.status === "declined").length,
+          };
+        }),
     };
   }
 
