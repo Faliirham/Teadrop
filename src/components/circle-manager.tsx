@@ -25,6 +25,7 @@ import {
   useSession,
 } from "@/hooks/use-teadrop";
 import * as api from "@/lib/api";
+import { isDemoMode } from "@/lib/env";
 import type { CircleDetail } from "@/lib/api";
 import type { Contribution, MomentPhoto, Period } from "@/types/db";
 
@@ -326,6 +327,29 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
   };
 
   // ---- render states ----
+
+  const authBlocked =
+    (!user && !isDemoMode) ||
+    (error instanceof Error && /belum login/i.test(error.message));
+
+  if (authBlocked) {
+    return (
+      <Shell>
+        <EmptyState icon={<GlassIcon />} title="Masuk dulu untuk mengelola">
+          <p className="mx-auto mt-1 max-w-xs text-sm text-muted">
+            Halaman circle butuh sesi login. Masuk dulu, kamu akan kembali ke
+            circle ini otomatis.
+          </p>
+          <Link
+            href={`/login?mode=masuk&next=${encodeURIComponent(`/circles/${id}`)}`}
+            className="mt-3 inline-flex items-center gap-2 rounded-xl bg-accent-strong px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4f46e5]"
+          >
+            Masuk untuk Mengelola
+          </Link>
+        </EmptyState>
+      </Shell>
+    );
+  }
 
   if (error || (data && !data.circle)) {
     return (

@@ -295,6 +295,18 @@ export default function HomePage() {
                 Gabung via Kode
               </Button>
             </div>
+            {!user && !isDemoMode && (
+              <p className="text-center text-xs text-muted">
+                Kamu melihat mode pratinjau.{" "}
+                <button
+                  type="button"
+                  onClick={() => router.replace("/login?mode=masuk&next=/")}
+                  className="font-semibold text-accent hover:underline"
+                >
+                  Masuk untuk menyimpan
+                </button>
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-5">

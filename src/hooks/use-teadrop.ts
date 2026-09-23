@@ -106,7 +106,12 @@ export function useCircleDetail(id: string | undefined, enabled: boolean) {
     queryKey: ["circle", id],
     queryFn: () => api.getCircleDetail(id as string),
     enabled: !!id && enabled,
-    retry: false,
+    // Jangan retry untuk "Belum login" agar langsung tampil CTA masuk;
+    // error network tetap 1x retry via default provider.
+    retry: (count, err) =>
+      err instanceof Error && /belum login/i.test(err.message)
+        ? false
+        : count < 1,
   });
 }
 
