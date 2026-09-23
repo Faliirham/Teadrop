@@ -168,7 +168,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-dvh pb-16">
+    <main id="main" tabIndex={-1} className="min-h-dvh pb-16 outline-none">
       {/* Header */}
       <header className="border-b border-border bg-surface/60 backdrop-blur-xl">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-4">

@@ -1126,7 +1126,7 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-dvh">
+    <main id="main" tabIndex={-1} className="min-h-dvh outline-none">
       <div className="mx-auto max-w-2xl px-4 pb-16 pt-4">{children}</div>
     </main>
   );

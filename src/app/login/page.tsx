@@ -217,7 +217,7 @@ function LoginForm() {
   };
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center px-4 py-10">
+    <main id="main" tabIndex={-1} className="relative flex min-h-dvh items-center justify-center px-4 py-10 outline-none">
       <div className="absolute right-4 top-4">
         <ThemeToggle />
       </div>
@@ -335,6 +335,7 @@ function LoginForm() {
             {tab === "daftar" && (
               <form onSubmit={handleDaftar} className="space-y-4" aria-busy={authBusy}>
                 <Input
+                  ref={emailRef}
                   label="Email"
                   type="email"
                   required
@@ -389,6 +390,7 @@ function LoginForm() {
             {tab === "magic" && (
               <div className="space-y-4" aria-busy={authBusy}>
                 <Input
+                  ref={emailRef}
                   label="Email"
                   type="email"
                   required

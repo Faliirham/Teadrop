@@ -35,7 +35,7 @@ const SAMPLE = [
 
 export function Landing() {
   return (
-    <main className="min-h-dvh">
+    <main id="main" tabIndex={-1} className="min-h-dvh outline-none">
       <div className="mx-auto max-w-5xl px-4">
         {/* header */}
         <nav className="flex h-16 items-center justify-between">
