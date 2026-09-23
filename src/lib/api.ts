@@ -70,18 +70,24 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     const u = getDemoSession() as DemoUser | null;
     return u ? { id: u.id, email: u.email, name: u.name } : null;
   }
-  const sb = createClient();
-  const { data } = await sb.auth.getUser();
-  const user = data.user;
-  if (!user) return null;
-  return {
-    id: user.id,
-    email: user.email ?? "",
-    name:
-      (user.user_metadata?.full_name as string | undefined) ??
-      user.email?.split("@")[0] ??
-      "Sahabat",
-  };
+  try {
+    const sb = createClient();
+    const { data } = await sb.auth.getUser();
+    const user = data.user;
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email ?? "",
+      name:
+        (user.user_metadata?.full_name as string | undefined) ??
+        user.email?.split("@")[0] ??
+        "Sahabat",
+    };
+  } catch {
+    // Jaringan/Auth down: anggap belum login agar UI menampilkan aksi
+    // masuk ulang, bukan crash. Middleware server menangani hal serupa.
+    return null;
+  }
 }
 
 /** Login dengan email(+password di mode live). Demo: email apa pun diterima. */

@@ -20,14 +20,15 @@ export default function HomePage() {
   const router = useRouter();
   const qc = useQueryClient();
   const toast = useToast();
-  const { data: user, isLoading: sessionLoading } = useSession();
+  const { data: user, isLoading: sessionLoading, isError: sessionError, refetch: refetchSession } = useSession();
   useDemoSync();
 
+  const sessionReady = !sessionLoading && !sessionError;
   const { data: circles, isLoading: circlesLoading } = useMyCircles(
-    !!user || isDemoMode
+    (sessionReady && !!user) || isDemoMode
   );
 
-  const showLanding = !sessionLoading && !user && !isDemoMode;
+  const showLanding = !sessionLoading && !sessionError && !user && !isDemoMode;
 
   const [activeId, setActiveId] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
@@ -138,6 +139,31 @@ export default function HomePage() {
 
   if (showLanding) {
     return <Landing />;
+  }
+
+  if (sessionError && !isDemoMode) {
+    return (
+      <main className="mx-auto grid min-h-dvh max-w-4xl place-items-center px-4">
+        <Card className="w-full max-w-sm text-center">
+          <p className="font-bold text-foreground">Sesi tidak bisa dimuat</p>
+          <p className="mt-1 text-sm text-muted">
+            Koneksi ke layanan login bermasalah. Cek internet kamu lalu coba lagi.
+          </p>
+          <div className="mt-4 flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => refetchSession()}
+              className="flex-1"
+            >
+              Coba Lagi
+            </Button>
+            <Button onClick={() => router.replace("/login?next=/")} className="flex-1">
+              Masuk Ulang
+            </Button>
+          </div>
+        </Card>
+      </main>
+    );
   }
 
   return (

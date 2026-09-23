@@ -108,6 +108,8 @@ function LoginForm() {
     for (let i = 0; i < tries; i++) {
       const s = await getSessionUser().catch(() => null);
       if (s) return s;
+      // Tunggu cookie @supabase/ssr ditulis sebelum redirect, agar
+      // homepage tidak sempat membaca sesi null (flicker ke Landing).
       await new Promise((r) => setTimeout(r, 250));
     }
     return null;

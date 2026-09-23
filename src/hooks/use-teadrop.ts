@@ -11,7 +11,13 @@ export function useSession() {
   return useQuery({
     queryKey: ["session"],
     queryFn: api.getSessionUser,
-    staleTime: Infinity,
+    // Sesi dibaca ulang tiap mount agar race cookie-vs-query setelah login
+    // tidak membuat homepage mengira user belum login (flicker ke Landing).
+    staleTime: 15_000,
+    gcTime: 5 * 60_000,
+    retry: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 }
 
@@ -90,6 +96,8 @@ export function useMyCircles(enabled: boolean) {
     queryKey: ["circles"],
     queryFn: api.listMyCircles,
     enabled,
+    staleTime: 15_000,
+    retry: 1,
   });
 }
 
