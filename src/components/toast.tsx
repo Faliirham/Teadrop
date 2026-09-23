@@ -68,12 +68,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={api}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4 sm:bottom-6">
+      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4 sm:bottom-6">
         {toasts.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => remove(t.id)}
+            aria-label={`Tutup notifikasi: ${t.message}`}
             className={`pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-lg backdrop-blur-xl animate-[toast-in_0.25s_ease-out] ${KIND_CLASS[t.kind]}`}
           >
             <span className={`mt-0.5 ${KIND_ICON[t.kind]}`}>

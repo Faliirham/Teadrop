@@ -61,6 +61,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(theme === "dark" ? "light" : "dark");
   }, [theme, setTheme]);
 
+  // Samakan meta theme-color dengan tema aktif agar address bar mobile
+  // tidak belang saat user berpindah dark/light dari halaman login.
+  useEffect(() => {
+    try {
+      let meta = document.querySelector('meta[name="theme-color"]');
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.setAttribute("name", "theme-color");
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute("content", theme === "light" ? "#f6f7f9" : "#050505");
+    } catch {
+      /* ignore */
+    }
+  }, [theme]);
+
   return (
     <ThemeContext.Provider value={{ theme, toggle, setTheme }}>
       {children}

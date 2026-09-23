@@ -59,13 +59,14 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             role="alertdialog"
             aria-modal="true"
             aria-label={state!.opts.title}
+            aria-describedby="confirm-desc"
             className="glass w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-bold text-foreground">
               {state!.opts.title}
             </h3>
-            <p className="mt-2 text-sm text-muted">
+            <p className="mt-2 text-sm text-muted" id="confirm-desc">
               {state!.opts.message}
             </p>
             <div className="mt-6 flex justify-end gap-2">

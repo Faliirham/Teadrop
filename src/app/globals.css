@@ -103,10 +103,17 @@ tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
-/* Smooth theme + surface transitions */
+/* Smooth theme + surface transitions. Hormati prefers-reduced-motion. */
 * {
   transition-property: background-color, border-color, color;
   transition-duration: 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+  }
 }
 
 /* Glass surface base (used by Cards and floating chrome) */

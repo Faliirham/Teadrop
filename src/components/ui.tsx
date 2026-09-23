@@ -8,12 +8,12 @@ type Size = "sm" | "md" | "lg";
 
 const VARIANT: Record<Variant, string> = {
   primary:
-    "bg-accent-strong text-white hover:bg-[#4f46e5] active:scale-[0.98] shadow-[0_8px_30px_-8px_rgba(99,102,241,0.5)]",
+    "bg-accent-strong text-white hover:bg-[#4f46e5] active:scale-[0.98] shadow-[0_8px_30px_-8px_rgba(99,102,241,0.5)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
   outline:
-    "border-border bg-surface/60 text-foreground hover:bg-surface-2 active:scale-[0.98] backdrop-blur-sm",
-  danger: "bg-rose-500/90 text-white hover:bg-rose-500 active:scale-[0.98]",
+    "border-border bg-surface/60 text-foreground hover:bg-surface-2 active:scale-[0.98] backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+  danger: "bg-rose-500/90 text-white hover:bg-rose-500 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400",
   ghost:
-    "text-muted hover:bg-surface-2 hover:text-foreground active:scale-[0.98]",
+    "text-muted hover:bg-surface-2 hover:text-foreground active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
 };
 
 const SIZE: Record<Size, string> = {
@@ -301,7 +301,7 @@ export function AuthTabs({
             aria-selected={active}
             disabled={disabled}
             onClick={() => onChange(t.id)}
-            className={`rounded-lg px-2 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
+            className={`rounded-lg px-2 py-2 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-40 ${
               active
                 ? "bg-accent-strong text-white shadow"
                 : "text-muted hover:bg-surface hover:text-foreground"
