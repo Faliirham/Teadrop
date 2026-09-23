@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes, SelectHTMLAttributes } from "react";
 
 type Variant = "primary" | "outline" | "danger" | "ghost";
@@ -22,19 +22,30 @@ const SIZE: Record<Size, string> = {
   lg: "w-full px-4 py-3 text-base rounded-xl",
 };
 
-export function Button({
-  variant = "primary",
-  size = "md",
-  loading,
-  children,
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: Variant;
-  size?: Size;
-  loading?: boolean;
-}) {
+export const Button = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    variant?: Variant;
+    size?: Size;
+    loading?: boolean;
+  }
+>(function Button(
+  {
+    variant = "primary",
+    size = "md",
+    loading,
+    children,
+    ...props
+  }: ButtonHTMLAttributes<HTMLButtonElement> & {
+    variant?: Variant;
+    size?: Size;
+    loading?: boolean;
+  },
+  ref
+) {
   return (
     <button
+      ref={ref}
       {...props}
       disabled={props.disabled || loading}
       className={`inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 ease-out ${VARIANT[variant]} ${SIZE[size]} cursor-pointer disabled:cursor-not-allowed disabled:opacity-40`}
@@ -45,7 +56,7 @@ export function Button({
       {children}
     </button>
   );
-}
+});
 
 export function Card({
   children,

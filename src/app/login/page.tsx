@@ -49,6 +49,7 @@ function LoginForm() {
   const params = useSearchParams();
   const next = sanitizeNextClient(params.get("next"));
   const callbackError = params.get("error");
+  const callbackReason = params.get("reason");
   const modeParam = params.get("mode");
 
   const [tab, setTab] = useState<AuthTabId>(() => initialTab(modeParam));
@@ -228,8 +229,21 @@ function LoginForm() {
         <SpotlightCard className="p-6">
           {callbackError && (
             <AuthBanner tone="error">
-              Sesi dari email/Google gagal diverifikasi (kemungkinan link
-              kedaluwarsa atau URL redirect belum cocok). Coba masuk lagi ya.
+              Sesi dari email/Google gagal diverifikasi
+              {callbackReason === "missing_code" ? " (link tidak lengkap). " : " (kemungkinan link kedaluwarsa atau URL redirect belum cocok). "}
+              Coba masuk lagi ya
+              {next !== "/" ? (
+                <>
+                  {" "}— setelah berhasil kamu akan diarahkan ke <code>{next}</code>.
+                </>
+              ) : (
+                "."
+              )}
+            </AuthBanner>
+          )}
+          {next !== "/" && !callbackError && (
+            <AuthBanner tone="info">
+              Setelah masuk kamu akan diarahkan ke <code>{next}</code>.
             </AuthBanner>
           )}
 

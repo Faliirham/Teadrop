@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
 
 type ConfirmOptions = {
@@ -35,6 +35,17 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   );
 
   const open = !!state;
+  const confirmRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    confirmRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") finish(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, finish]);
 
   return (
     <ConfirmContext.Provider value={confirmFn}>
@@ -45,6 +56,9 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
           onClick={() => finish(false)}
         >
           <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-label={state!.opts.title}
             className="glass w-full max-w-sm overflow-hidden rounded-2xl p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
@@ -59,6 +73,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                 Batal
               </Button>
               <Button
+                ref={confirmRef as React.Ref<HTMLButtonElement>}
                 variant={state!.opts.danger ? "danger" : "primary"}
                 size="md"
                 onClick={() => finish(true)}

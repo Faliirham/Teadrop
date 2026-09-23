@@ -51,7 +51,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const push = useCallback(
     (kind: ToastKind, message: string) => {
       const id = ++idRef.current;
-      setToasts((t) => [...t, { id, kind, message }]);
+      // Batasi tumpukan agar banner auth tidak menutupi layar di HP.
+      setToasts((t) => [...t, { id, kind, message }].slice(-3));
       setTimeout(() => remove(id), 4000);
     },
     [remove]
