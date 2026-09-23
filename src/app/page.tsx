@@ -118,8 +118,9 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     await api.signOut();
+    toast.warning("Kamu keluar. Sampai jumpa lagi!");
     await qc.invalidateQueries();
-    router.replace("/login");
+    router.replace("/login?mode=masuk");
     router.refresh();
   };
 

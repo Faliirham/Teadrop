@@ -74,7 +74,8 @@ export function Landing() {
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-base text-muted">
             Buat circle, kumpulkan iuran, dan pantau siapa yang sudah bayar — semuanya
-            di satu tempat dan bisa diakses semua anggota.
+            di satu tempat dan bisa diakses semua anggota. Daftar gratis dalam
+            semenit, atau masuk tanpa password pakai magic link.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -103,7 +104,7 @@ export function Landing() {
         </section>
 
         {/* sample circles */}
-        <section className="pb-20">
+        <section className="pb-8">
           <h2 className="mb-4 text-center text-sm font-semibold uppercase tracking-wide text-muted">
             Begini tampilannya
           </h2>
@@ -131,6 +132,30 @@ export function Landing() {
               </SpotlightCard>
             ))}
           </div>
+        </section>
+
+        {/* auth entry */}
+        <section className="pb-20">
+          <SpotlightCard className="flex flex-col items-center gap-3 text-center">
+            <h2 className="text-lg font-extrabold text-foreground">
+              Mulai dari yang paling nyaman
+            </h2>
+            <p className="max-w-md text-sm text-muted">
+              Punya password? Masuk langsung. Baru pertama kali? Daftar 1 menit.
+              Malas ingat password? Magic link saja.
+            </p>
+            <div className="mt-1 flex flex-col gap-2 sm:flex-row">
+              <Link href="/login?mode=masuk">
+                <Button variant="outline" size="md">Masuk</Button>
+              </Link>
+              <Link href="/login?mode=daftar">
+                <Button size="md">Daftar Gratis</Button>
+              </Link>
+              <Link href="/login?mode=magic">
+                <Button variant="ghost" size="md">Magic Link</Button>
+              </Link>
+            </div>
+          </SpotlightCard>
         </section>
       </div>
     </main>

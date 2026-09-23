@@ -410,6 +410,25 @@ function LoginForm() {
           <Link href="/" className="transition hover:text-foreground">
             Kembali ke beranda
           </Link>
+          {" · "}
+          {tab !== "daftar" && (
+            <button
+              type="button"
+              onClick={() => switchTab("daftar")}
+              className="transition hover:text-foreground"
+            >
+              Belum punya akun? Daftar
+            </button>
+          )}
+          {tab === "daftar" && (
+            <button
+              type="button"
+              onClick={() => switchTab("masuk")}
+              className="transition hover:text-foreground"
+            >
+              Sudah punya akun? Masuk
+            </button>
+          )}
         </p>
       </div>
     </main>

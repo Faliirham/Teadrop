@@ -5,12 +5,22 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Teadrop — Tabungan Bersama Circle",
     short_name: "Teadrop",
     description:
-      "Kelola iuran bersama circle pertemanan: realtime, transparan, tanpa drama.",
+      "Kelola iuran bersama circle pertemanan: realtime, transparan, tanpa drama. Masuk, daftar, atau magic link.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f8fafc",
+    background_color: "#050505",
     theme_color: "#4f46e5",
     orientation: "portrait",
+    shortcuts: [
+      {
+        name: "Masuk",
+        url: "/login?mode=masuk",
+      },
+      {
+        name: "Buat Circle",
+        url: "/login?mode=daftar&next=/",
+      },
+    ],
     icons: [
       {
         src: "/icons/icon-192.png",

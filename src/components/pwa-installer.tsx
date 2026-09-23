@@ -24,6 +24,7 @@ export function PwaInstaller() {
   }, []);
 
   // Capture the install prompt when the browser fires beforeinstallprompt.
+  // Jangan tampilkan bareng toast auth (z-[60]) — prompt PWA di atasnya.
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
@@ -50,7 +51,7 @@ export function PwaInstaller() {
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-4 z-[60] flex justify-center px-4">
+    <div className="fixed inset-x-0 bottom-4 z-[65] flex justify-center px-4" role="dialog" aria-label="Pasang Teadrop">
       <div className="glass flex w-full max-w-sm items-center gap-3 rounded-2xl p-4 shadow-xl">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
           <MobileIcon />
