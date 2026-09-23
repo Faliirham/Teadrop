@@ -49,12 +49,12 @@ export function Landing() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link href="/login">
+            <Link href="/login?mode=masuk">
               <Button variant="ghost" size="sm">
                 Masuk
               </Button>
             </Link>
-            <Link href="/login">
+            <Link href="/login?mode=daftar">
               <Button size="sm">Mulai Gratis</Button>
             </Link>
           </div>
@@ -78,8 +78,11 @@ export function Landing() {
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/login">
+            <Link href="/login?mode=daftar">
               <Button size="lg">Buat Circle Gratis</Button>
+            </Link>
+            <Link href="/login?mode=magic">
+              <Button variant="outline" size="lg">Coba Magic Link</Button>
             </Link>
           </div>
         </section>

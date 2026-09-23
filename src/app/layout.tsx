@@ -16,9 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Teadrop — Tabungan Bersama Circle",
+  title: {
+    default: "Teadrop — Tabungan Bersama Circle",
+    template: "%s — Teadrop",
+  },
   description:
-    "Kelola iuran bersama circle pertemanan: realtime, transparan, tanpa drama.",
+    "Kelola iuran bersama circle pertemanan: realtime, transparan, tanpa drama. Masuk, daftar, atau pakai magic link.",
+  applicationName: "Teadrop",
   icons: {
     apple: "/icons/apple-touch-icon.png",
   },

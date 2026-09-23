@@ -253,3 +253,74 @@ export function Skeleton({ className = "" }: { className?: string }) {
     <div className={`animate-pulse rounded-2xl bg-surface-2 ${className}`} />
   );
 }
+
+export type AuthTabId = "masuk" | "daftar" | "magic";
+
+export function AuthTabs({
+  tab,
+  onChange,
+  disabled,
+}: {
+  tab: AuthTabId;
+  onChange: (t: AuthTabId) => void;
+  disabled?: boolean;
+}) {
+  const tabs: { id: AuthTabId; label: string }[] = [
+    { id: "masuk", label: "Masuk" },
+    { id: "daftar", label: "Daftar" },
+    { id: "magic", label: "Magic Link" },
+  ];
+  return (
+    <div
+      role="tablist"
+      aria-label="Pilih metode masuk"
+      className="mb-5 grid grid-cols-3 gap-1 rounded-xl border border-border bg-surface-2 p-1"
+    >
+      {tabs.map((t) => {
+        const active = t.id === tab;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            disabled={disabled}
+            onClick={() => onChange(t.id)}
+            className={`rounded-lg px-2 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
+              active
+                ? "bg-accent-strong text-white shadow"
+                : "text-muted hover:bg-surface hover:text-foreground"
+            }`}
+          >
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function AuthBanner({
+  tone = "info",
+  children,
+}: {
+  tone?: "info" | "success" | "error" | "warning";
+  children: ReactNode;
+}) {
+  const cls =
+    tone === "success"
+      ? "border-accent/30 bg-accent-soft text-accent"
+      : tone === "error"
+        ? "border-rose-500/30 bg-rose-500/10 text-rose-300"
+        : tone === "warning"
+          ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
+          : "border-sky-500/30 bg-sky-500/10 text-sky-300";
+  return (
+    <div
+      role={tone === "error" ? "alert" : "status"}
+      className={`mb-4 rounded-xl border px-4 py-3 text-sm leading-relaxed ${cls}`}
+    >
+      {children}
+    </div>
+  );
+}

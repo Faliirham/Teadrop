@@ -5,11 +5,27 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { Button, Input } from "@/components/ui";
+import { AuthBanner, AuthTabs, Button, Input, type AuthTabId } from "@/components/ui";
 import { SpotlightCard } from "@/components/reactbits/SpotlightCard";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { signIn, sendMagicLink, signInWithGoogle } from "@/lib/api";
+import { signIn, signUp, sendMagicLink, signInWithGoogle } from "@/lib/api";
 import { isDemoMode } from "@/lib/env";
+
+function initialTab(mode: string | null): AuthTabId {
+  return mode === "daftar" || mode === "magic" || mode === "masuk"
+    ? mode
+    : "masuk";
+}
+
+/** Path internal yang aman untuk redirect balik setelah login. */
+function sanitizeNextClient(value: string | null): string {
+  if (!value) return "/";
+  if (!value.startsWith("/") || value.startsWith("//")) return "/";
+  if (/[\r\n]/.test(value)) return "/";
+  const path = value.split("?")[0];
+  if (path === "/login" || path.startsWith("/auth/")) return "/";
+  return value;
+}
 
 export default function LoginPage() {
   return (
@@ -29,10 +45,14 @@ function LoginForm() {
   const router = useRouter();
   const qc = useQueryClient();
   const params = useSearchParams();
-  const next = params.get("next") ?? "/";
+  const next = sanitizeNextClient(params.get("next"));
+  const callbackError = params.get("error");
+  const modeParam = params.get("mode");
 
+  const [tab, setTab] = useState<AuthTabId>(() => initialTab(modeParam));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState<"none" | "password" | "magic" | "google">("none");
   const [error, setError] = useState<string | null>(null);
   const [magicSent, setMagicSent] = useState(false);
@@ -48,32 +68,79 @@ function LoginForm() {
       return "Tidak bisa menghubungi Supabase. Cek koneksi internet dan NEXT_PUBLIC_SUPABASE_URL di .env.local, lalu restart dev server.";
     }
     if (/EMAIL_CONFIRM_REQUIRED/.test(raw)) {
-      return "Akun dibuat! Cek inbox email untuk konfirmasi, lalu masuk lagi. (Atau pakai Magic Link — langsung jalan tanpa konfirmasi.)";
+      return "Akun dibuat! Cek inbox email untuk konfirmasi, lalu masuk lagi. (Atau pakai tab Magic Link — langsung jalan tanpa konfirmasi.)";
     }
     if (/email not confirmed/i.test(raw)) {
-      return "Email belum dikonfirmasi. Cek inbox kamu, atau masuk via Magic Link.";
+      return "Email belum dikonfirmasi. Cek inbox kamu, atau masuk via tab Magic Link.";
     }
     if (/invalid login credentials/i.test(raw)) {
-      return "Email/password salah. Kalau belum punya akun, akun baru otomatis dibuat — pastikan password minimal 6 karakter.";
+      return tab === "daftar"
+        ? "Email ini sudah terdaftar. Pindah ke tab Masuk, atau cek lagi password kamu."
+        : "Email/password salah. Cek lagi penulisan email dan password kamu.";
     }
     if (/password.*(short|6 characters)|weak password/i.test(raw)) {
       return "Password minimal 6 karakter ya.";
     }
+    if (/Passwords do not match|konfirmasi/i.test(raw)) {
+      return raw;
+    }
     return raw;
   };
 
-  const handlePassword = async (e: React.FormEvent) => {
+  const switchTab = (t: AuthTabId) => {
+    if (authBusy) return;
+    setTab(t);
+    setError(null);
+    setMagicSent(false);
+  };
+
+  const waitForSession = async (tries = 12) => {
+    const { getSessionUser } = await import("@/lib/api");
+    for (let i = 0; i < tries; i++) {
+      const s = await getSessionUser().catch(() => null);
+      if (s) return s;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    return null;
+  };
+
+  const finishPasswordAuth = async () => {
+    await qc.invalidateQueries({ queryKey: ["session"] });
+    await waitForSession();
+    await qc.invalidateQueries({ queryKey: ["session"] });
+    router.replace(next);
+    router.refresh();
+  };
+
+  const handleMasuk = async (e: React.FormEvent) => {
     e.preventDefault();
     if (busy !== "none") return;
     setError(null);
     setBusy("password");
     try {
-      await signIn(email, password);
-      await qc.invalidateQueries({ queryKey: ["session"] });
-      router.replace(next);
-      router.refresh();
+      await signIn(email.trim(), password);
+      await finishPasswordAuth();
     } catch (err) {
       setError(friendlyAuthError(err, "Gagal masuk"));
+    } finally {
+      setBusy("none");
+    }
+  };
+
+  const handleDaftar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (busy !== "none") return;
+    if (password !== confirmPassword) {
+      setError("Konfirmasi password belum sama. Cek lagi ya.");
+      return;
+    }
+    setError(null);
+    setBusy("password");
+    try {
+      await signUp(email.trim(), password);
+      await finishPasswordAuth();
+    } catch (err) {
+      setError(friendlyAuthError(err, "Gagal mendaftar"));
     } finally {
       setBusy("none");
     }
@@ -88,7 +155,7 @@ function LoginForm() {
     setError(null);
     setBusy("magic");
     try {
-      await sendMagicLink(email, window.location.origin, next);
+      await sendMagicLink(email.trim(), window.location.origin, next);
       if (isDemoMode) {
         await qc.invalidateQueries({ queryKey: ["session"] });
         router.replace(next);
@@ -122,7 +189,7 @@ function LoginForm() {
   };
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center px-4">
+    <main className="relative flex min-h-dvh items-center justify-center px-4 py-10">
       <div className="absolute right-4 top-4">
         <ThemeToggle />
       </div>
@@ -140,19 +207,29 @@ function LoginForm() {
         </div>
 
         <SpotlightCard className="p-6">
+          {callbackError && (
+            <AuthBanner tone="error">
+              Sesi dari email/Google gagal diverifikasi (kemungkinan link
+              kedaluwarsa atau URL redirect belum cocok). Coba masuk lagi ya.
+            </AuthBanner>
+          )}
+
           {isDemoMode && (
-            <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs leading-relaxed text-amber-300">
+            <AuthBanner tone="warning">
               <b>MODE DEMO</b> — data tersimpan di browser ini saja. Masuk dengan
               email apa pun (mis. <code>kamu@demo.id</code>) untuk mencoba dengan
               data contoh.
-            </div>
+            </AuthBanner>
           )}
 
-          {magicSent && (
-            <div className="mb-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent">
-              Magic link terkirim! Cek inbox email kamu.
-            </div>
+          {magicSent && tab === "magic" && (
+            <AuthBanner tone="success">
+              Magic link terkirim! Cek inbox email kamu, link berlaku terbatas.
+              Belum masuk? Tunggu 1 menit lalu kirim ulang.
+            </AuthBanner>
           )}
+
+          <AuthTabs tab={tab} onChange={switchTab} disabled={authBusy} />
 
           <div className="space-y-4">
             <Button
@@ -166,51 +243,122 @@ function LoginForm() {
 
             <Divider label="atau pakai email" />
 
-            <form onSubmit={handlePassword} className="space-y-4">
-              <Input
-                label="Email"
-                type="email"
-                required
-                placeholder="kamu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                disabled={authBusy}
-              />
-              <Input
-                label="Password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                hint={isDemoMode ? "Di mode demo password diabaikan" : undefined}
-                disabled={authBusy}
-              />
-              {error && (
-                <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
-                  {error}
+            {tab === "masuk" && (
+              <form onSubmit={handleMasuk} className="space-y-4" aria-busy={authBusy}>
+                <Input
+                  label="Email"
+                  type="email"
+                  required
+                  placeholder="kamu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  disabled={authBusy}
+                />
+                <Input
+                  label="Password"
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  hint={isDemoMode ? "Di mode demo password diabaikan" : undefined}
+                  disabled={authBusy}
+                />
+                {error && (
+                  <p role="alert" className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+                    {error}
+                  </p>
+                )}
+                <Button type="submit" size="lg" loading={busy === "password"}>
+                  Masuk
+                </Button>
+                <p className="text-center text-xs text-muted">
+                  Lupa password? Pindah ke tab Magic Link — tanpa password.
                 </p>
-              )}
-              <Button type="submit" size="lg" loading={busy === "password"}>
-                Masuk
-              </Button>
-            </form>
+              </form>
+            )}
 
-            <Divider label="atau" />
+            {tab === "daftar" && (
+              <form onSubmit={handleDaftar} className="space-y-4" aria-busy={authBusy}>
+                <Input
+                  label="Email"
+                  type="email"
+                  required
+                  placeholder="kamu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  disabled={authBusy}
+                />
+                <Input
+                  label="Password (min. 6 karakter)"
+                  type="password"
+                  required
+                  minLength={6}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  disabled={authBusy}
+                />
+                <Input
+                  label="Konfirmasi password"
+                  type="password"
+                  required
+                  minLength={6}
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  disabled={authBusy}
+                />
+                {error && (
+                  <p role="alert" className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+                    {error}
+                  </p>
+                )}
+                <Button type="submit" size="lg" loading={busy === "password"}>
+                  Buat Akun
+                </Button>
+                <p className="text-center text-xs text-muted">
+                  Sudah punya akun? Pindah ke tab Masuk.
+                </p>
+              </form>
+            )}
 
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={handleMagic}
-              loading={busy === "magic"}
-            >
-              <MailIcon /> Masuk via Magic Link
-            </Button>
-
-            <p className="pt-1 text-center text-xs text-muted">
-              Belum punya akun? Cukup masuk — akun dibuat otomatis.
-            </p>
+            {tab === "magic" && (
+              <div className="space-y-4" aria-busy={authBusy}>
+                <Input
+                  label="Email"
+                  type="email"
+                  required
+                  placeholder="kamu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  disabled={authBusy}
+                />
+                {error && (
+                  <p role="alert" className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+                    {error}
+                  </p>
+                )}
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleMagic}
+                  loading={busy === "magic"}
+                >
+                  <MailIcon /> {magicSent ? "Kirim Ulang Magic Link" : "Masuk via Magic Link"}
+                </Button>
+                <p className="text-center text-xs text-muted">
+                  Kami kirim link sekali pakai ke email. Klik link itu untuk
+                  masuk — tanpa password, tanpa konfirmasi tambahan.
+                </p>
+              </div>
+            )}
           </div>
         </SpotlightCard>
 
