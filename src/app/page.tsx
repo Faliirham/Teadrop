@@ -247,8 +247,14 @@ export default function HomePage() {
         </div>
         {isDemoMode && (
           <div className="border-t border-border bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-300">
-            <b>MODE DEMO</b> — data contoh disimpan di browser ini. Isi{" "}
-            <code>.env.local</code> dengan key Supabase untuk mode live.
+            <b>MODE DEMO</b> — data contoh di browser ini, password login
+            diabaikan. Isi <code>.env.local</code> dengan key Supabase untuk mode
+            live (tab Daftar + Magic Link + Google).
+          </div>
+        )}
+        {!isDemoMode && !!user && (
+          <div className="border-t border-border bg-accent-soft px-4 py-2 text-center text-xs text-accent">
+            <b>MODE LIVE</b> — masuk sebagai {user.email}. Kelola circlemu di bawah.
           </div>
         )}
       </header>

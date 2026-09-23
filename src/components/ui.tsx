@@ -168,12 +168,14 @@ export function EmptyState({
   title,
   desc,
   children,
+  action,
 }: {
   emoji?: string;
   icon?: ReactNode;
   title: string;
   desc?: string;
   children?: ReactNode;
+  action?: ReactNode;
 }) {
   return (
     <div className="rounded-2xl border border-dashed border-border bg-surface/40 px-6 py-12 text-center">
@@ -182,7 +184,8 @@ export function EmptyState({
       {desc && (
         <p className="mx-auto mt-1 max-w-xs text-sm text-muted">{desc}</p>
       )}
-      {children}
+      {(action ?? children) && <div className="mt-4">{action ?? children}</div>}
+      {action && children && <div className="mt-2 text-sm">{children}</div>}
     </div>
   );
 }

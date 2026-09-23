@@ -17,6 +17,9 @@ const DB_KEY = "teadrop_demo_db_v1";
 const SESSION_KEY = "teadrop_demo_session";
 const LOCK_KEY = "teadrop_demo_lock_v1";
 
+/** Email contoh untuk mode demo (ditampilkan di banner login). */
+export const DEMO_SAMPLE_EMAIL = "kamu@demo.id";
+
 export interface DemoUser {
   id: string;
   email: string;

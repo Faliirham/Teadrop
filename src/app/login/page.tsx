@@ -249,11 +249,18 @@ function LoginForm() {
             </AuthBanner>
           )}
 
-          {isDemoMode && (
+          {isDemoMode ? (
             <AuthBanner tone="warning">
-              <b>MODE DEMO</b> — data tersimpan di browser ini saja. Masuk dengan
-              email apa pun (mis. <code>kamu@demo.id</code>) untuk mencoba dengan
-              data contoh.
+              <b>MODE DEMO</b> — data tersimpan di browser ini saja, password
+              diabaikan. Masuk dengan email apa pun (mis.{" "}
+              <code>kamu@demo.id</code>) untuk mencoba data contoh. Isi kredensial
+              Supabase untuk mode live.
+            </AuthBanner>
+          ) : (
+            <AuthBanner tone="info">
+              <b>MODE LIVE</b> — akun tersimpan di Supabase. Tab Daftar butuh
+              password min. 6 karakter; kalau email mewajibkan konfirmasi, cek
+              inbox lalu Masuk lagi (atau pakai Magic Link).
             </AuthBanner>
           )}
 

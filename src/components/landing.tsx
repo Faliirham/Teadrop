@@ -75,7 +75,8 @@ export function Landing() {
           <p className="mx-auto mt-4 max-w-xl text-base text-muted">
             Buat circle, kumpulkan iuran, dan pantau siapa yang sudah bayar — semuanya
             di satu tempat dan bisa diakses semua anggota. Daftar gratis dalam
-            semenit, atau masuk tanpa password pakai magic link.
+            semenit, atau masuk tanpa password pakai magic link. Tanpa
+            kredensial? Coba mode demo langsung dari halaman login.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
