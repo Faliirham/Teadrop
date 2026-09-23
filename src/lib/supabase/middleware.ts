@@ -36,10 +36,16 @@ export async function updateSession(request: NextRequest) {
 
   const { supabase, supabaseResponse } = buildClient(request);
 
-  // getUser() memvalidasi token ke server Auth (jangan pakai getSession())
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getUser() memvalidasi token ke server Auth (jangan pakai getSession()).
+  // Jika Auth tidak terjangkau (DNS down / project paused), anggap belum
+  // login agar route protected redirect ke /login, bukan 500.
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    user = null;
+  }
 
   const { pathname } = request.nextUrl;
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));

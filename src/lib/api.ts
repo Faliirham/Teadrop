@@ -72,7 +72,39 @@ export async function signIn(email: string, password: string): Promise<void> {
   }
   const sb = createClient();
   const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) throw new Error(error.message);
+  if (!error) return;
+  // Jika user belum ada, daftarkan otomatis (sesuai janji di halaman login).
+  // Typo password pada email yang sudah terdaftar tetap ditolak Supabase
+  // dengan pesan yang sama, jadi akun sampah tidak dibuat dalam kasus itu.
+  if (/invalid login credentials/i.test(error.message)) {
+    await signUp(email, password);
+    return;
+  }
+  throw new Error(error.message);
+}
+
+/**
+ * Daftar akun baru (hanya mode live). Melempar EMAIL_CONFIRM_REQUIRED bila
+ * project mewajibkan konfirmasi email — user harus klik link di inbox dulu.
+ */
+export async function signUp(email: string, password: string): Promise<void> {
+  if (isDemoMode) {
+    demoSignIn(email);
+    return;
+  }
+  const sb = createClient();
+  const { data, error } = await sb.auth.signUp({ email, password });
+  if (error) {
+    // Balapan: akun ternyata sudah ada (dibuat via magic link dsb) → coba login.
+    if (/already registered|already exists/i.test(error.message)) {
+      const retry = await sb.auth.signInWithPassword({ email, password });
+      if (retry.error) throw new Error(retry.error.message);
+      return;
+    }
+    throw new Error(error.message);
+  }
+  if (data.session) return;
+  throw new Error("EMAIL_CONFIRM_REQUIRED");
 }
 
 /** Kirim magic link (hanya mode live; di demo langsung login) */

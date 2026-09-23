@@ -36,9 +36,35 @@ function LoginForm() {
   const [busy, setBusy] = useState<"none" | "password" | "magic" | "google">("none");
   const [error, setError] = useState<string | null>(null);
   const [magicSent, setMagicSent] = useState(false);
+  const authBusy = busy !== "none";
+
+  const friendlyAuthError = (err: unknown, fallback: string) => {
+    const raw = err instanceof Error ? err.message : fallback;
+    if (
+      /failed to fetch|fetch failed|network|ERR_NAME_NOT_RESOLVED|ENOTFOUND|load failed/i.test(
+        raw
+      )
+    ) {
+      return "Tidak bisa menghubungi Supabase. Cek koneksi internet dan NEXT_PUBLIC_SUPABASE_URL di .env.local, lalu restart dev server.";
+    }
+    if (/EMAIL_CONFIRM_REQUIRED/.test(raw)) {
+      return "Akun dibuat! Cek inbox email untuk konfirmasi, lalu masuk lagi. (Atau pakai Magic Link — langsung jalan tanpa konfirmasi.)";
+    }
+    if (/email not confirmed/i.test(raw)) {
+      return "Email belum dikonfirmasi. Cek inbox kamu, atau masuk via Magic Link.";
+    }
+    if (/invalid login credentials/i.test(raw)) {
+      return "Email/password salah. Kalau belum punya akun, akun baru otomatis dibuat — pastikan password minimal 6 karakter.";
+    }
+    if (/password.*(short|6 characters)|weak password/i.test(raw)) {
+      return "Password minimal 6 karakter ya.";
+    }
+    return raw;
+  };
 
   const handlePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (busy !== "none") return;
     setError(null);
     setBusy("password");
     try {
@@ -47,13 +73,14 @@ function LoginForm() {
       router.replace(next);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal masuk");
+      setError(friendlyAuthError(err, "Gagal masuk"));
     } finally {
       setBusy("none");
     }
   };
 
   const handleMagic = async () => {
+    if (busy !== "none") return;
     if (!email.trim()) {
       setError("Isi email dulu ya.");
       return;
@@ -70,13 +97,14 @@ function LoginForm() {
       }
       setMagicSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal kirim magic link");
+      setError(friendlyAuthError(err, "Gagal kirim magic link"));
     } finally {
       setBusy("none");
     }
   };
 
   const handleGoogle = async () => {
+    if (busy !== "none") return;
     setError(null);
     setBusy("google");
     try {
@@ -87,7 +115,7 @@ function LoginForm() {
         router.refresh();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal masuk dengan Google");
+      setError(friendlyAuthError(err, "Gagal masuk dengan Google"));
     } finally {
       setBusy("none");
     }
@@ -147,6 +175,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
+                disabled={authBusy}
               />
               <Input
                 label="Password"
@@ -156,6 +185,7 @@ function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 hint={isDemoMode ? "Di mode demo password diabaikan" : undefined}
+                disabled={authBusy}
               />
               {error && (
                 <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">

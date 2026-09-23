@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from "react";
 
@@ -29,15 +30,22 @@ function applyTheme(theme: Theme) {
   root.style.colorScheme = theme;
 }
 
+function readThemeFromDOM(): Theme {
+  return document.documentElement.classList.contains("light") ? "light" : "dark";
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // The inline boot script already applied the persisted/system theme to
-  // <html> before hydration, so read it from the DOM to avoid a flash.
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof document === "undefined") return "dark";
-    return document.documentElement.classList.contains("light")
-      ? "light"
-      : "dark";
-  });
+  // Always initialize to "dark" on both server and client to avoid hydration
+  // mismatch. The boot script already applied the real theme to <html> before
+  // hydration, so we read it in useEffect (client-only) and sync.
+  const [theme, setThemeState] = useState<Theme>("dark");
+
+  useEffect(() => {
+    // Sync sekali dari DOM yang sudah dipasang boot script pre-hydration.
+    // Pola ini disengaja untuk hindari hydration mismatch (init selalu "dark").
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setThemeState(readThemeFromDOM());
+  }, []);
 
   const setTheme = useCallback((t: Theme) => {
     setThemeState(t);

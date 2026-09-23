@@ -296,10 +296,20 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
     refresh();
   };
 
+  const myMemberId =
+    data?.members.find((m) => m.user_id === user?.id)?.id ?? "";
+
   const doRsvpMeetup = async (meetupId: string, status: "going" | "maybe" | "declined") => {
-    if (!user) return;
-    await api.rsvpMeetup(meetupId, user.id, status);
-    refresh();
+    if (!user || !myMemberId) {
+      toast.error("Kamu belum jadi anggota circle ini");
+      return;
+    }
+    try {
+      await api.rsvpMeetup(meetupId, myMemberId, status);
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Gagal menyimpan RSVP");
+    }
   };
 
   const doDeleteMeetup = async (meetupId: string) => {
@@ -343,65 +353,6 @@ export default function CircleManager({ circleId }: { circleId?: string }) {
       </Shell>
     );
   }
-
-function CircleSettingsModal({
-  open,
-  currentName,
-  currentDescription,
-  onClose,
-  onSave,
-}: {
-  open: boolean;
-  currentName: string;
-  currentDescription: string;
-  onClose: () => void;
-  onSave: (name: string, description: string) => Promise<void>;
-}) {
-  const [name, setName] = useState(currentName);
-  const [description, setDescription] = useState(currentDescription);
-  const [busy, setBusy] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setBusy(true);
-    try {
-      await onSave(name.trim(), description.trim());
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Modal open={open} onClose={onClose} title="Pengaturan Circle">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Nama circle"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={60}
-          autoFocus
-        />
-        <Input
-          label="Deskripsi"
-          placeholder="Tentang circle ini..."
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          maxLength={200}
-        />
-        <div className="flex gap-3 pt-2">
-          <Button type="button" variant="ghost" onClick={onClose} className="flex-1">
-            Batal
-          </Button>
-          <Button type="submit" loading={busy} className="flex-1">
-            Simpan
-          </Button>
-        </div>
-      </form>
-    </Modal>
-  );
-}
 
   const bal = data.latestBalance;
   const delta = bal ? Number(bal.new_amount) - Number(bal.previous_amount) : 0;
@@ -1061,7 +1012,7 @@ function CircleSettingsModal({
           <SpotlightCard className="p-4">
             <MeetupCalendar
               meetups={meetups}
-              currentUserId={user?.id ?? ""}
+              currentMemberId={myMemberId}
               isAdmin={isAdmin}
               onCreate={doCreateMeetup}
               onRsvp={doRsvpMeetup}
@@ -1089,6 +1040,7 @@ function CircleSettingsModal({
 
       <BalanceModal
         open={showBalance}
+        circleId={id}
         currentAmount={bal ? Number(bal.new_amount) : 0}
         onClose={() => setShowBalance(false)}
         onDone={async () => {
@@ -1115,6 +1067,7 @@ function CircleSettingsModal({
 
       <CreatePeriodModal
         open={showNewPeriod}
+        circleId={id}
         defaultAmount={Number(data.circle.default_amount) || 0}
         suggestedName={new Date().toLocaleDateString("id-ID", {
           month: "long",
@@ -1129,6 +1082,7 @@ function CircleSettingsModal({
       />
 
       <CircleSettingsModal
+        key={data.circle.id}
         open={showSettings}
         currentName={data.circle.name}
         currentDescription={data.circle.description ?? ""}
@@ -1182,11 +1136,13 @@ function BankIcon() {
 
 function BalanceModal({
   open,
+  circleId,
   currentAmount,
   onClose,
   onDone,
 }: {
   open: boolean;
+  circleId: string;
   currentAmount: number;
   onClose: () => void;
   onDone: () => Promise<void>;
@@ -1200,11 +1156,7 @@ function BalanceModal({
     setErr(null);
     setBusy(true);
     try {
-      await api.updateBalance(
-        window.location.pathname.split("/")[2],
-        Number(amount),
-        note
-      );
+      await api.updateBalance(circleId, Number(amount), note);
       setAmount("");
       setNote("");
       await onDone();
@@ -1356,12 +1308,14 @@ function RecordPaymentModal({
 
 function CreatePeriodModal({
   open,
+  circleId,
   suggestedName,
   defaultAmount,
   onClose,
   onDone,
 }: {
   open: boolean;
+  circleId: string;
   suggestedName: string;
   defaultAmount: number;
   onClose: () => void;
@@ -1377,7 +1331,6 @@ function CreatePeriodModal({
     setErr(null);
     setBusy(true);
     try {
-      const circleId = window.location.pathname.split("/")[2];
       await api.addPeriod({
         circleId,
         name: name || suggestedName,
@@ -1432,6 +1385,65 @@ function CreatePeriodModal({
           read-only permanen.
         </p>
       </div>
+    </Modal>
+  );
+}
+
+function CircleSettingsModal({
+  open,
+  currentName,
+  currentDescription,
+  onClose,
+  onSave,
+}: {
+  open: boolean;
+  currentName: string;
+  currentDescription: string;
+  onClose: () => void;
+  onSave: (name: string, description: string) => Promise<void>;
+}) {
+  const [name, setName] = useState(currentName);
+  const [description, setDescription] = useState(currentDescription);
+  const [busy, setBusy] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setBusy(true);
+    try {
+      await onSave(name.trim(), description.trim());
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="Pengaturan Circle">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Nama circle"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={60}
+          autoFocus
+        />
+        <Input
+          label="Deskripsi"
+          placeholder="Tentang circle ini..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          maxLength={200}
+        />
+        <div className="flex gap-3 pt-2">
+          <Button type="button" variant="ghost" onClick={onClose} className="flex-1">
+            Batal
+          </Button>
+          <Button type="submit" loading={busy} className="flex-1">
+            Simpan
+          </Button>
+        </div>
+      </form>
     </Modal>
   );
 }

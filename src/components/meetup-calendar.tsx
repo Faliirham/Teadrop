@@ -7,7 +7,10 @@ import type { MeetupStatus } from "@/types/db";
 
 type Props = {
   meetups: MeetupWithRsvp[];
-  currentUserId: string;
+  /** circle_members.id of the current user (meetup_rsvps.member_id references circle_members, not auth users) */
+  currentMemberId: string;
+  /** @deprecated use currentMemberId */
+  currentUserId?: string;
   isAdmin: boolean;
   onCreate: (input: {
     title: string;
@@ -48,12 +51,14 @@ function isPast(iso: string): boolean {
 
 export function MeetupCalendar({
   meetups,
+  currentMemberId,
   currentUserId,
   isAdmin,
   onCreate,
   onRsvp,
   onDelete,
 }: Props) {
+  const resolvedMemberId = currentMemberId ?? currentUserId ?? "";
   const [showCreate, setShowCreate] = useState(false);
 
   const upcoming = meetups.filter((m) => !isPast(m.start_at));
@@ -83,7 +88,7 @@ export function MeetupCalendar({
             <MeetupCard
               key={m.id}
               meetup={m}
-              currentUserId={currentUserId}
+              currentMemberId={resolvedMemberId}
               isAdmin={isAdmin}
               onRsvp={onRsvp}
               onDelete={onDelete}
@@ -101,7 +106,7 @@ export function MeetupCalendar({
             <MeetupCard
               key={m.id}
               meetup={m}
-              currentUserId={currentUserId}
+              currentMemberId={resolvedMemberId}
               isAdmin={isAdmin}
               onRsvp={onRsvp}
               onDelete={onDelete}
@@ -125,20 +130,20 @@ export function MeetupCalendar({
 
 function MeetupCard({
   meetup,
-  currentUserId,
+  currentMemberId,
   isAdmin,
   onRsvp,
   onDelete,
   past = false,
 }: {
   meetup: MeetupWithRsvp;
-  currentUserId: string;
+  currentMemberId: string;
   isAdmin: boolean;
   onRsvp: (meetupId: string, status: MeetupStatus) => Promise<void>;
   onDelete: (meetupId: string) => Promise<void>;
   past?: boolean;
 }) {
-  const myRsvp = meetup.rsvps.find((r) => r.member_id === currentUserId);
+  const myRsvp = meetup.rsvps.find((r) => r.member_id === currentMemberId);
   const going = meetup.rsvps.filter((r) => r.status === "going");
   const maybe = meetup.rsvps.filter((r) => r.status === "maybe");
   const declined = meetup.rsvps.filter((r) => r.status === "declined");
