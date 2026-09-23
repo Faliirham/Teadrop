@@ -116,6 +116,19 @@ tabular-nums {
   }
 }
 
+/* Fokus keyboard yang jelas di semua halaman auth */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Target sentuh nyaman di layar kecil */
+@media (pointer: coarse) {
+  button {
+    min-height: 40px;
+  }
+}
+
 /* Glass surface base (used by Cards and floating chrome) */
 .glass {
   background: color-mix(in oklab, var(--surface) 78%, transparent);

@@ -55,7 +55,8 @@ export function ProfileEditModal({
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="group relative h-20 w-20 overflow-hidden rounded-full border-2 border-border transition hover:border-accent"
+            aria-label="Ganti foto profil"
+            className="group relative h-20 w-20 overflow-hidden rounded-full border-2 border-border transition hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {preview ? (
               // eslint-disable-next-line @next/next/no-img-element

@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes, SelectHTMLAttributes } from "react";
 
 type Variant = "primary" | "outline" | "danger" | "ghost";
@@ -74,17 +74,27 @@ export function Card({
   );
 }
 
-export function Input({
-  label,
-  hint,
-  error,
-  className = "",
-  ...props
-}: InputHTMLAttributes<HTMLInputElement> & {
-  label?: string;
-  hint?: string;
-  error?: string | null;
-}) {
+export const Input = forwardRef<
+  HTMLInputElement,
+  InputHTMLAttributes<HTMLInputElement> & {
+    label?: string;
+    hint?: string;
+    error?: string | null;
+  }
+>(function Input(
+  {
+    label,
+    hint,
+    error,
+    className = "",
+    ...props
+  }: InputHTMLAttributes<HTMLInputElement> & {
+    label?: string;
+    hint?: string;
+    error?: string | null;
+  },
+  ref
+) {
   return (
     <label className="block">
       {label && (
@@ -93,6 +103,7 @@ export function Input({
         </span>
       )}
       <input
+        ref={ref}
         {...props}
         className={`w-full rounded-xl border bg-surface/60 px-4 py-2.5 text-foreground outline-none transition placeholder:text-muted/50 focus:border-accent focus:ring-2 focus:ring-accent-soft ${
           error ? "border-rose-400" : "border-border"
@@ -104,7 +115,7 @@ export function Input({
       {error && <span className="mt-1 block text-xs text-rose-400">{error}</span>}
     </label>
   );
-}
+});
 
 type Tone = "indigo" | "amber" | "red" | "slate" | "sky";
 
@@ -143,6 +154,14 @@ export function Modal({
   title: string;
   children: ReactNode;
 }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
   if (!open) return null;
   return (
     <div
@@ -150,6 +169,9 @@ export function Modal({
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         className="glass max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl shadow-2xl sm:rounded-2xl animate-modal-in"
         onClick={(e) => e.stopPropagation()}
       >
@@ -349,20 +371,32 @@ export function FieldError({ message }: { message?: string | null }) {
   );
 }
 
-export function PasswordInput({
-  label,
-  hint,
-  error,
-  showLabel = "Lihat",
-  hideLabel = "Sembunyi",
-  ...props
-}: InputHTMLAttributes<HTMLInputElement> & {
-  label?: string;
-  hint?: string;
-  error?: string | null;
-  showLabel?: string;
-  hideLabel?: string;
-}) {
+export const PasswordInput = forwardRef<
+  HTMLInputElement,
+  InputHTMLAttributes<HTMLInputElement> & {
+    label?: string;
+    hint?: string;
+    error?: string | null;
+    showLabel?: string;
+    hideLabel?: string;
+  }
+>(function PasswordInput(
+  {
+    label,
+    hint,
+    error,
+    showLabel = "Lihat",
+    hideLabel = "Sembunyi",
+    ...props
+  }: InputHTMLAttributes<HTMLInputElement> & {
+    label?: string;
+    hint?: string;
+    error?: string | null;
+    showLabel?: string;
+    hideLabel?: string;
+  },
+  ref
+) {
   const [show, setShow] = useState(false);
   return (
     <label className="block">
@@ -373,6 +407,7 @@ export function PasswordInput({
       )}
       <span className="relative block">
         <input
+          ref={ref}
           {...props}
           type={show ? "text" : "password"}
           className={`w-full rounded-xl border bg-surface/60 px-4 py-2.5 pr-20 text-foreground outline-none transition placeholder:text-muted/50 focus:border-accent focus:ring-2 focus:ring-accent-soft ${
@@ -384,7 +419,8 @@ export function PasswordInput({
           onClick={() => setShow((s) => !s)}
           aria-pressed={show}
           aria-label={show ? hideLabel : showLabel}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2.5 py-1 text-xs font-semibold text-muted transition hover:bg-surface-2 hover:text-foreground"
+          tabIndex={-1}
+          className="absolute right-2 top-1/2 min-h-[32px] min-w-[64px] -translate-y-1/2 rounded-lg px-2.5 py-1 text-xs font-semibold text-muted transition hover:bg-surface-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent"
         >
           {show ? hideLabel : showLabel}
         </button>
@@ -395,4 +431,4 @@ export function PasswordInput({
       {error && <span className="mt-1 block text-xs text-rose-400">{error}</span>}
     </label>
   );
-}
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
@@ -63,6 +63,12 @@ function LoginForm() {
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [magicSent, setMagicSent] = useState(false);
   const authBusy = busy !== "none";
+  const emailRef = useRef<HTMLInputElement>(null);
+
+  // Fokus ke email tiap ganti tab agar alur keyboard cepat di HP/desktop.
+  useEffect(() => {
+    emailRef.current?.focus();
+  }, [tab]);
 
   const friendlyAuthError = (err: unknown, fallback: string) => {
     const raw = err instanceof Error ? err.message : fallback;
@@ -288,6 +294,7 @@ function LoginForm() {
             {tab === "masuk" && (
               <form onSubmit={handleMasuk} className="space-y-4" aria-busy={authBusy}>
                 <Input
+                  ref={emailRef}
                   label="Email"
                   type="email"
                   required
