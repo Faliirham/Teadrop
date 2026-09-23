@@ -34,6 +34,26 @@ export interface SessionUser {
   name: string;
 }
 
+/** Normalisasi email untuk validasi client (tidak mengubah logika network). */
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+/** Validasi email sederhana di client sebelum memanggil Supabase. */
+export function validateEmail(email: string): string | null {
+  const v = normalizeEmail(email);
+  if (!v) return "Isi email dulu ya.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return "Format email belum valid. Contoh: kamu@email.com";
+  return null;
+}
+
+/** Validasi password di client (Supabase minimum 6 karakter). */
+export function validatePassword(password: string): string | null {
+  if (!password) return "Isi password dulu ya.";
+  if (password.length < 6) return "Password minimal 6 karakter ya.";
+  return null;
+}
+
 function makeInviteCode(): string {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let out = "";

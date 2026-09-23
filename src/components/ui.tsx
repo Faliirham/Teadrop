@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes, SelectHTMLAttributes } from "react";
 
 type Variant = "primary" | "outline" | "danger" | "ghost";
@@ -322,5 +323,62 @@ export function AuthBanner({
     >
       {children}
     </div>
+  );
+}
+
+export function FieldError({ message }: { message?: string | null }) {
+  if (!message) return null;
+  return (
+    <p role="alert" className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+      {message}
+    </p>
+  );
+}
+
+export function PasswordInput({
+  label,
+  hint,
+  error,
+  showLabel = "Lihat",
+  hideLabel = "Sembunyi",
+  ...props
+}: InputHTMLAttributes<HTMLInputElement> & {
+  label?: string;
+  hint?: string;
+  error?: string | null;
+  showLabel?: string;
+  hideLabel?: string;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <label className="block">
+      {label && (
+        <span className="mb-1.5 block text-sm font-medium text-muted">
+          {label}
+        </span>
+      )}
+      <span className="relative block">
+        <input
+          {...props}
+          type={show ? "text" : "password"}
+          className={`w-full rounded-xl border bg-surface/60 px-4 py-2.5 pr-20 text-foreground outline-none transition placeholder:text-muted/50 focus:border-accent focus:ring-2 focus:ring-accent-soft ${
+            error ? "border-rose-400" : "border-border"
+          }`}
+        />
+        <button
+          type="button"
+          onClick={() => setShow((s) => !s)}
+          aria-pressed={show}
+          aria-label={show ? hideLabel : showLabel}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2.5 py-1 text-xs font-semibold text-muted transition hover:bg-surface-2 hover:text-foreground"
+        >
+          {show ? hideLabel : showLabel}
+        </button>
+      </span>
+      {hint && !error && (
+        <span className="mt-1 block text-xs text-muted">{hint}</span>
+      )}
+      {error && <span className="mt-1 block text-xs text-rose-400">{error}</span>}
+    </label>
   );
 }

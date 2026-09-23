@@ -5,10 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { AuthBanner, AuthTabs, Button, Input, type AuthTabId } from "@/components/ui";
+import { AuthBanner, AuthTabs, Button, FieldError, Input, PasswordInput, type AuthTabId } from "@/components/ui";
 import { SpotlightCard } from "@/components/reactbits/SpotlightCard";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { signIn, signUp, sendMagicLink, signInWithGoogle } from "@/lib/api";
+import { useToast } from "@/components/toast";
+import { signIn, signUp, sendMagicLink, signInWithGoogle, validateEmail, validatePassword, normalizeEmail } from "@/lib/api";
 import { isDemoMode } from "@/lib/env";
 
 function initialTab(mode: string | null): AuthTabId {
@@ -44,6 +45,7 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter();
   const qc = useQueryClient();
+  const toast = useToast();
   const params = useSearchParams();
   const next = sanitizeNextClient(params.get("next"));
   const callbackError = params.get("error");
@@ -55,6 +57,9 @@ function LoginForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState<"none" | "password" | "magic" | "google">("none");
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
   const [magicSent, setMagicSent] = useState(false);
   const authBusy = busy !== "none";
 
@@ -91,6 +96,9 @@ function LoginForm() {
     if (authBusy) return;
     setTab(t);
     setError(null);
+    setEmailError(null);
+    setPasswordError(null);
+    setConfirmError(null);
     setMagicSent(false);
   };
 
@@ -115,10 +123,16 @@ function LoginForm() {
   const handleMasuk = async (e: React.FormEvent) => {
     e.preventDefault();
     if (busy !== "none") return;
+    const eErr = validateEmail(email);
+    const pErr = isDemoMode ? null : validatePassword(password);
+    setEmailError(eErr);
+    setPasswordError(pErr);
+    if (eErr || pErr) return;
     setError(null);
     setBusy("password");
     try {
-      await signIn(email.trim(), password);
+      await signIn(normalizeEmail(email), password);
+      toast.success("Berhasil masuk. Mengalihkan…");
       await finishPasswordAuth();
     } catch (err) {
       setError(friendlyAuthError(err, "Gagal masuk"));
@@ -130,14 +144,19 @@ function LoginForm() {
   const handleDaftar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (busy !== "none") return;
-    if (password !== confirmPassword) {
-      setError("Konfirmasi password belum sama. Cek lagi ya.");
-      return;
-    }
+    const eErr = validateEmail(email);
+    const pErr = validatePassword(password);
+    const cErr =
+      password !== confirmPassword ? "Konfirmasi password belum sama. Cek lagi ya." : null;
+    setEmailError(eErr);
+    setPasswordError(pErr);
+    setConfirmError(cErr);
+    if (eErr || pErr || cErr) return;
     setError(null);
     setBusy("password");
     try {
-      await signUp(email.trim(), password);
+      await signUp(normalizeEmail(email), password);
+      toast.success("Akun dibuat. Mengalihkan…");
       await finishPasswordAuth();
     } catch (err) {
       setError(friendlyAuthError(err, "Gagal mendaftar"));
@@ -148,14 +167,13 @@ function LoginForm() {
 
   const handleMagic = async () => {
     if (busy !== "none") return;
-    if (!email.trim()) {
-      setError("Isi email dulu ya.");
-      return;
-    }
+    const eErr = validateEmail(email);
+    setEmailError(eErr);
+    if (eErr) return;
     setError(null);
     setBusy("magic");
     try {
-      await sendMagicLink(email.trim(), window.location.origin, next);
+      await sendMagicLink(normalizeEmail(email), window.location.origin, next);
       if (isDemoMode) {
         await qc.invalidateQueries({ queryKey: ["session"] });
         router.replace(next);
@@ -163,6 +181,7 @@ function LoginForm() {
         return;
       }
       setMagicSent(true);
+      toast.success("Magic link terkirim. Cek inbox ya.");
     } catch (err) {
       setError(friendlyAuthError(err, "Gagal kirim magic link"));
     } finally {
@@ -251,26 +270,29 @@ function LoginForm() {
                   required
                   placeholder="kamu@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError(null);
+                  }}
                   autoComplete="email"
                   disabled={authBusy}
+                  error={emailError}
                 />
-                <Input
+                <PasswordInput
                   label="Password"
-                  type="password"
                   required
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (passwordError) setPasswordError(null);
+                  }}
                   autoComplete="current-password"
                   hint={isDemoMode ? "Di mode demo password diabaikan" : undefined}
                   disabled={authBusy}
+                  error={passwordError}
                 />
-                {error && (
-                  <p role="alert" className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
-                    {error}
-                  </p>
-                )}
+                <FieldError message={error} />
                 <Button type="submit" size="lg" loading={busy === "password"}>
                   Masuk
                 </Button>
@@ -288,37 +310,43 @@ function LoginForm() {
                   required
                   placeholder="kamu@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError(null);
+                  }}
                   autoComplete="email"
                   disabled={authBusy}
+                  error={emailError}
                 />
-                <Input
+                <PasswordInput
                   label="Password (min. 6 karakter)"
-                  type="password"
                   required
                   minLength={6}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (passwordError) setPasswordError(null);
+                  }}
                   autoComplete="new-password"
                   disabled={authBusy}
+                  error={passwordError}
                 />
-                <Input
+                <PasswordInput
                   label="Konfirmasi password"
-                  type="password"
                   required
                   minLength={6}
                   placeholder="••••••••"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (confirmError) setConfirmError(null);
+                  }}
                   autoComplete="new-password"
                   disabled={authBusy}
+                  error={confirmError}
                 />
-                {error && (
-                  <p role="alert" className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
-                    {error}
-                  </p>
-                )}
+                <FieldError message={error} />
                 <Button type="submit" size="lg" loading={busy === "password"}>
                   Buat Akun
                 </Button>
@@ -336,15 +364,15 @@ function LoginForm() {
                   required
                   placeholder="kamu@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError(null);
+                  }}
                   autoComplete="email"
                   disabled={authBusy}
+                  error={emailError}
                 />
-                {error && (
-                  <p role="alert" className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
-                    {error}
-                  </p>
-                )}
+                <FieldError message={error} />
                 <Button
                   variant="outline"
                   size="lg"

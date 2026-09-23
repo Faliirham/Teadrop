@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 
-type ToastKind = "success" | "error" | "info";
+type ToastKind = "success" | "error" | "info" | "warning";
 
 type Toast = {
   id: number;
@@ -20,6 +20,7 @@ type ToastApi = {
   success: (message: string) => void;
   error: (message: string) => void;
   info: (message: string) => void;
+  warning: (message: string) => void;
 };
 
 const ToastContext = createContext<ToastApi | null>(null);
@@ -29,12 +30,14 @@ const KIND_CLASS: Record<ToastKind, string> = {
     "border-accent/40 bg-surface/90 text-foreground",
   error: "border-rose-500/40 bg-surface/90 text-foreground",
   info: "border-sky-500/40 bg-surface/90 text-foreground",
+  warning: "border-amber-500/40 bg-surface/90 text-foreground",
 };
 
 const KIND_ICON: Record<ToastKind, string> = {
   success: "text-accent",
   error: "text-rose-400",
   info: "text-sky-400",
+  warning: "text-amber-300",
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
@@ -58,6 +61,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     success: useCallback((m: string) => push("success", m), [push]),
     error: useCallback((m: string) => push("error", m), [push]),
     info: useCallback((m: string) => push("info", m), [push]),
+    warning: useCallback((m: string) => push("warning", m), [push]),
   };
 
   return (
@@ -72,7 +76,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             className={`pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-2xl border px-4 py-3 text-left text-sm font-medium shadow-lg backdrop-blur-xl animate-[toast-in_0.25s_ease-out] ${KIND_CLASS[t.kind]}`}
           >
             <span className={`mt-0.5 ${KIND_ICON[t.kind]}`}>
-              {t.kind === "success" ? <CheckIcon /> : t.kind === "error" ? <AlertIcon /> : <InfoIcon />}
+              {t.kind === "success" ? <CheckIcon /> : t.kind === "error" ? <AlertIcon /> : t.kind === "warning" ? <AlertIcon /> : <InfoIcon />}
             </span>
             <span className="flex-1 leading-snug">{t.message}</span>
             <span className="text-xs opacity-40">✕</span>
